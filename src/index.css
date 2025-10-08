@@ -1,0 +1,54 @@
+/* Firefox */
+.overflow-y-auto {
+  scrollbar-width: thin; 
+  scrollbar-color: #ebedf0 transparent !important; /* thumb and track */
+  overflow-y: auto;
+}
+
+/* Chrome, Edge, Safari */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px; /* super thin */
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent; /* hide track */
+}
+
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #ebedf0; 
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+/* Hide up/down arrows */
+.overflow-y-auto::-webkit-scrollbar-button {
+  display: none !important;
+}
+
+/* Hover effect */
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #ebedf0 !important;
+  scrollbar-color: #c8daf4 transparent !important; /* thumb and track */
+
+}
+
+.pc-navbar .pc-hasmenu.active .pc-submenu {
+  display: block !important;
+  transition: display 0.5s ease;
+}
+
+.pc-navbar .pc-hasmenu.active .pc-link .pc-arrow {
+  transform: rotate(90deg) !important;
+  transition: transform 0.5s ease;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+}
