@@ -73,6 +73,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("authRole", response.data.user.role);
 
       toast.success("Login successful!");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
       return { success: true };
     } catch (err) {
       console.error("Login failed:", err);

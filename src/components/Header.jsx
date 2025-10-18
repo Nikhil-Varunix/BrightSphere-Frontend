@@ -162,10 +162,10 @@ const Header = () => {
                 <ul className="pc-submenu" onClick={(e) => e.stopPropagation()}>
                   {[
                     { path: "/admin/editors", label: "Editors" },
-                    { path: "/admin/volume", label: "Volume" },
+                    { path: "/admin/volume", label: "Volumes" },
                     { path: "/admin/issues", label: "Issues" },
-                    { path: "/admin/designations", label: "Designation" },
-                    { path: "/admin/permissions", label: "Permissions" },
+                    // { path: "/admin/designations", label: "Designation" },
+                    // { path: "/admin/permissions", label: "Permissions" },
                     
                   ].map((item) => (
                     <li key={item.path} className={`pc-item ${isSubmenuActive(item.path) ? "active" : ""}`}>
@@ -252,61 +252,7 @@ const Header = () => {
           {/* [Mobile Media Block end] */}
           <div className="ms-auto">
             <ul className="list-unstyled">
-              <li className="dropdown pc-h-item d-none d-md-inline-flex">
-                <a
-                  className="pc-head-link dropdown-toggle arrow-none me-0"
-                  data-bs-toggle="dropdown"
-                  href="#"
-                  role="button"
-                  aria-haspopup="false"
-                  aria-expanded="false"
-                >
-                  <i className="ph-duotone ph-circles-four" />
-                </a>
-                <div className="dropdown-menu dropdown-qta dropdown-menu-end pc-h-dropdown">
-                  <div className="overflow-hidden">
-                    <div className="qta-links m-n1">
-                      <Link to="/" className="dropdown-item">
-                        <i className="ph-duotone ph-gauge" />
-                        <span>Dashboard</span>
-                      </Link>
-                      <Link to="/users" className="dropdown-item">
-                        <i className="ph-duotone ph-user-circle" />
-                        <span>Users</span>
-                      </Link>
-                      <Link to="/attendance" className="dropdown-item">
-                        <i className="ph-duotone ph-calendar-check" />
-                        <span>Attendance</span>
-                      </Link>
-                      <Link to="/tasks" className="dropdown-item">
-                        <i className="ph-duotone ph-newspaper" />
-                        <span>Tasks</span>
-                      </Link>
-                      <Link to="/location-insights/live-map" className="dropdown-item">
-                        <i className="ph-duotone ph-map-pin" />
-                        <span>Location Insights</span>
-                      </Link>
-                      <Link to="/accounts/invoices" className="dropdown-item">
-                        <i className="ph-duotone ph-scroll" />
-                        <span>Invoices</span>
-                      </Link>
-                      <Link to="/forms" className="dropdown-item">
-                        <i className="ph-duotone ph-notebook" />
-                        <span>Forms & Entries</span>
-                      </Link>
-                      <Link to="/customers" className="dropdown-item">
-                        <i className="ph-duotone ph-users-three" />
-                        <span>Customers</span>
-                      </Link>
-                      <Link to="/helpdesk" className="dropdown-item">
-                        <i className="ph-duotone ph-headset" />
-                        <span>Help Desk</span>
-                      </Link>
-                    </div>
-
-                  </div>
-                </div>
-              </li>
+              
               <li className="dropdown pc-h-item d-none d-md-inline-flex">
                 <a
                   className="pc-head-link dropdown-toggle arrow-none me-0"
@@ -338,186 +284,7 @@ const Header = () => {
 
                 </div>
               </li>
-              <li className="dropdown pc-h-item">
-                <a
-                  className="pc-head-link dropdown-toggle arrow-none me-0"
-                  data-bs-toggle="dropdown"
-                  href="#"
-                  role="button"
-                  aria-haspopup="false"
-                  aria-expanded="false"
-                >
-                  <i className="ph-duotone ph-bell" />
-                  <span className="badge bg-success pc-h-badge">5</span>
-                </a>
-                <div className="dropdown-menu dropdown-notification dropdown-menu-end pc-h-dropdown">
-                  <div className="dropdown-header d-flex align-items-center justify-content-between">
-                    <h5 className="m-0">Notifications</h5>
-                    <ul className="list-inline ms-auto mb-0">
-                      <li className="list-inline-item">
-                        <a
-                          href="/notifications"
-                          className="avtar avtar-s btn-link-hover-primary"
-                        >
-                          <i className="ti ti-link f-18" />
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  <div
-                    className="dropdown-body text-wrap header-notification-scroll position-relative"
-                    style={{
-                      maxHeight: "calc(100vh - 235px)",
-                      overflowY: "auto",
-                      overflowX: "hidden",
-                      scrollbarWidth: "thin",
-                      msOverflowStyle: "none",      // IE/Edge legacy
-                    }}
-                  >
-                    <ul className="list-group list-group-flush">
-                      <li className="list-group-item">
-                        <p className="text-span">Today</p>
-                        <div className="d-flex">
-                          <div className="flex-shrink-0">
-                            <div className="avtar avtar-s bg-light-primary">
-                              <i className="ph-duotone ph-wrench f-18" />
-                            </div>
-                          </div>
-                          <div className="flex-grow-1 ms-3">
-                            <div className="d-flex">
-                              <div className="flex-grow-1 me-3 position-relative">
-                                <h6 className="mb-0 text-truncate">
-                                  Work Order #452 assigned to John Doe
-                                </h6>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <span className="text-sm">10 min ago</span>
-                              </div>
-                            </div>
-                            <p className="position-relative mt-1 mb-2">
-                              Please complete the AC maintenance task by EOD.
-                            </p>
-                            <span className="badge bg-light-primary border border-primary me-1 mt-1">
-                              HVAC
-                            </span>
-                            <span className="badge bg-light-success border border-success me-1 mt-1">
-                              Urgent
-                            </span>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li className="list-group-item">
-                        <div className="d-flex">
-                          <div className="flex-shrink-0">
-                            <div className="avtar avtar-s bg-light-warning">
-                              <i className="ph-duotone ph-timer f-18" />
-                            </div>
-                          </div>
-                          <div className="flex-grow-1 ms-3">
-                            <div className="d-flex">
-                              <div className="flex-grow-1 me-3 position-relative">
-                                <h6 className="mb-0 text-truncate">SLA Alert</h6>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <span className="text-sm">30 min ago</span>
-                              </div>
-                            </div>
-                            <p className="position-relative mt-1 mb-2">
-                              Task #311 is approaching SLA breach time.
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li className="list-group-item">
-                        <p className="text-span">Yesterday</p>
-                        <div className="d-flex">
-                          <div className="flex-shrink-0">
-                            <div className="avtar avtar-s bg-light-danger">
-                              <i className="ph-duotone ph-calendar f-18" />
-                            </div>
-                          </div>
-                          <div className="flex-grow-1 ms-3">
-                            <div className="d-flex">
-                              <div className="flex-grow-1 me-3 position-relative">
-                                <h6 className="mb-0 text-truncate">Attendance Alert</h6>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <span className="text-sm">14 hour ago</span>
-                              </div>
-                            </div>
-                            <p className="position-relative mt-1 mb-2">
-                              Technician Jane Smith did not clock in for her shift.
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li className="list-group-item">
-                        <div className="d-flex">
-                          <div className="flex-shrink-0">
-                            <div className="avtar avtar-s bg-light-info">
-                              <i className="ph-duotone ph-file-text f-18" />
-                            </div>
-                          </div>
-                          <div className="flex-grow-1 ms-3">
-                            <div className="d-flex">
-                              <div className="flex-grow-1 me-3 position-relative">
-                                <h6 className="mb-0 text-truncate">Report Generated</h6>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <span className="text-sm">3 hour ago</span>
-                              </div>
-                            </div>
-                            <p className="position-relative mt-1 mb-2">
-                              Daily Work Order Summary report is ready for download.
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li className="list-group-item">
-                        <div className="d-flex">
-                          <div className="flex-shrink-0">
-                            <div className="avtar avtar-s bg-light-success">
-                              <i className="ph-duotone ph-shield-checkered f-18" />
-                            </div>
-                          </div>
-                          <div className="flex-grow-1 ms-3">
-                            <div className="d-flex">
-                              <div className="flex-grow-1 me-3 position-relative">
-                                <h6 className="mb-0 text-truncate">Security Update</h6>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <span className="text-sm">6 hour ago</span>
-                              </div>
-                            </div>
-                            <p className="position-relative mt-1 mb-2">
-                              System maintenance completed successfully.
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="dropdown-footer">
-                    <div className="row g-3">
-                      <div className="col-6">
-                        <div className="d-grid">
-                          <button className="btn btn-primary">Archive all</button>
-                        </div>
-                      </div>
-                      <div className="col-6">
-                        <div className="d-grid">
-                          <button className="btn btn-outline-secondary">Mark all as read</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
+              
 
               <li className="dropdown pc-h-item header-user-profile">
                 <a

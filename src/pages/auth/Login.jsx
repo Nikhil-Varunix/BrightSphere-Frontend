@@ -20,7 +20,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login(values.email, values.password); 
-      navigate("/"); 
+      // navigate("/"); 
     } catch (error) {
       console.error("Login failed:", error);
     } finally {

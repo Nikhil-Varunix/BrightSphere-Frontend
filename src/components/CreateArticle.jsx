@@ -1,431 +1,222 @@
-// src/pages/admin/RichTextEditor.jsx
-import React, { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { Link } from "react-router-dom";
 import BreadCrumb from "../components/BreadCrumb";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
 
-export default function RichTextEditor() {
-  const journalsList = [
-    "Life and Environmental Science",
-    "Journal of Climate Studies",
-    "Global Sustainability Review",
-    "Earth & Ecology Research",
-  ];
+const API_URL = import.meta.env.VITE_API_URL;
 
+function CreateArticle() {
+  const quillRef = useRef();
   const [formData, setFormData] = useState({
     title: "",
     author: "",
-    articleType: "",
-    journal: "", // will come from dropdown
     content: "",
-    coverImage: null, // for main article image
+    journal: "",
+    volume: "",
+    issue: "",
+    coverImage: null,
+    articleType: "",
   });
+  const [journals, setJournals] = useState([]);
+  const [volumes, setVolumes] = useState([]);
+  const [issues, setIssues] = useState([]);
 
-  const quillRef = useRef();
+  // Fetch journals
+  useEffect(() => {
+    const fetchJournals = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(`${API_URL}/journals/all`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data.success) {
+          setJournals(res.data.data);
+          if (res.data.data.length > 0) {
+            setFormData(prev => ({ ...prev, journal: res.data.data[0]._id }));
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load journals");
+      }
+    };
+    fetchJournals();
+  }, []);
+
+// Fetch volumes when journal changes
+useEffect(() => {
+  const fetchVolumes = async () => {
+    if (!formData.journal) {
+      setVolumes([]);
+      setFormData(prev => ({ ...prev, volume: "", issue: "" }));
+      setIssues([]);
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${API_URL}/volumes?limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        // Filter volumes belonging to selected journal
+        const filteredVolumes = res.data.data.filter(v => v.journal._id === formData.journal);
+        setVolumes(filteredVolumes);
+        setFormData(prev => ({ ...prev, volume: "", issue: "" }));
+        setIssues([]);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load volumes");
+    }
+  };
+  fetchVolumes();
+}, [formData.journal]);
+
+// Fetch issues when volume changes
+useEffect(() => {
+  const fetchIssues = async () => {
+    if (!formData.volume) {
+      setIssues([]);
+      setFormData(prev => ({ ...prev, issue: "" }));
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${API_URL}/issues?limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        // Filter issues belonging to selected volume
+        const filteredIssues = res.data.data.filter(i => i.volume._id === formData.volume);
+        setIssues(filteredIssues);
+        setFormData(prev => ({ ...prev, issue: "" })); // Reset issue
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load issues");
+    }
+  };
+  fetchIssues();
+}, [formData.volume]);
+
+
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "coverImage") {
-      setFormData({ ...formData, coverImage: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === "coverImage" ? files[0] : value,
+      ...(name === "journal" ? { volume: "", issue: "" } : {}),
+      ...(name === "volume" ? { issue: "" } : {}),
+    }));
   };
 
-  const handleContentChange = (value) => {
-    setFormData({ ...formData, content: value });
-  };
+  const handleContentChange = value => setFormData(prev => ({ ...prev, content: value }));
 
-  // Custom Image Upload for Quill
-  const imageHandler = () => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("accept", "image/*");
-    input.click();
-
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        const quill = quillRef.current.getEditor();
-        const range = quill.getSelection();
-        quill.insertEmbed(range.index, "image", url);
-      }
-    };
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const payload = new FormData();
-    payload.append("title", formData.title);
-    payload.append("author", formData.author);
-    payload.append("articleType", formData.articleType);
-    payload.append("journal", formData.journal);
-    payload.append("content", formData.content);
-    if (formData.coverImage) {
-      payload.append("coverImage", formData.coverImage);
+    if (!formData.title || !formData.author || !formData.journal || !formData.volume) {
+      toast.error("Please fill all required fields");
+      return;
     }
-
-    console.log("Submitting Article:", Object.fromEntries(payload));
-    alert("Article submitted successfully!");
+    try {
+      const payload = new FormData();
+      Object.keys(formData).forEach(key => formData[key] && payload.append(key, formData[key]));
+      const token = localStorage.getItem("authToken");
+      const res = await axios.post(`${API_URL}/articles`, payload, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      });
+      if (res.data.success) {
+        toast.success("Article created successfully!");
+        setFormData({ title: "", author: "", content: "", journal: "", volume: "", issue: "", coverImage: null, articleType: "" });
+        setVolumes([]); setIssues([]);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to create article");
+    }
   };
 
   return (
     <>
-     <div className="d-flex justify-content-between align-items-center mb-4">
-                  <BreadCrumb subLabel="Create Article"/>
-                   <div className="d-flex align-items-start gap-2 flex-wrap">
-                          <Link to="/articles" className="btn btn-primary d-flex align-items-center">
-                    <i className="ti ti-arrow-left f-24"></i> Back to Articles
-                    </Link>
-                         </div>
-    </div>
-    <div className="container mt-4">
-      <div className="card">
-        <div className="card-header bg-primary">
-          <h5>Create Article</h5>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            {/* Article Title */}
-            <div className="mb-3">
-              <label className="form-label">Title</label>
-              <input
-                type="text"
-                className="form-control"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter article title"
-                required
-              />
-            </div>
-
-            {/* Author */}
-            <div className="mb-3">
-              <label className="form-label">Author</label>
-              <input
-                type="text"
-                className="form-control"
-                name="author"
-                value={formData.author}
-                onChange={handleChange}
-                placeholder="Enter author name"
-                required
-              />
-            </div>
-
-            {/* Article Type */}
-            <div className="mb-3">
-              <label className="form-label">Article Type</label>
-              <input
-                type="text"
-                className="form-control"
-                name="articleType"
-                value={formData.articleType}
-                onChange={handleChange}
-                placeholder="Enter article type"
-                required
-              />
-            </div>
-
-            {/* Journal Dropdown */}
-            <div className="mb-3">
-              <label className="form-label">Journal</label>
-              <select
-                className="form-control"
-                name="journal"
-                value={formData.journal}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Journal</option>
-                {journalsList.map((j, idx) => (
-                  <option key={idx} value={j}>
-                    {j}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Cover Image */}
-            <div className="mb-3">
-              <label className="form-label">Article Image</label>
-              <input
-                type="file"
-                className="form-control"
-                name="coverImage"
-                onChange={handleChange}
-              />
-            </div>
-
-            {/* React Quill Editor */}
-            <div className="mb-3">
-              <label className="form-label">Content</label>
-              <ReactQuill
-                ref={quillRef}
-                theme="snow"
-                value={formData.content}
-                onChange={handleContentChange}
-                placeholder="Write your article here..."
-                modules={modules(imageHandler)}
-                formats={formats}
-                style={{ height: "300px", marginBottom: "50px" }}
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button type="submit" className="btn btn-primary">
-              Submit Article
-            </button>
-          </form>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <BreadCrumb subLabel="Create Article" />
+        <Link to="/articles" className="btn btn-primary">
+          <i className="ti ti-arrow-left"></i> Back to Articles
+        </Link>
+      </div>
+      <div className="container mt-4">
+        <div className="card shadow-sm">
+          <div className="card-header bg-light-primary text-white"><h5>Create Article</h5></div>
+          <div className="card-body">
+            <form onSubmit={handleSubmit} className="row g-3">
+              <div className="col-md-6">
+                <label>Title</label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} className="form-control" required />
+              </div>
+              <div className="col-md-6">
+                <label>Author</label>
+                <input type="text" name="author" value={formData.author} onChange={handleChange} className="form-control" required />
+              </div>
+              <div className="col-md-6">
+                <label>Journal</label>
+                <select name="journal" value={formData.journal} onChange={handleChange} className="form-select" required>
+                  <option value="">Select Journal</option>
+                  {journals.map(j => <option key={j._id} value={j._id}>{j.title}</option>)}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label>Volume</label>
+                <select name="volume" value={formData.volume} onChange={handleChange} className="form-select" disabled={!volumes.length} required>
+                  <option value="">Select Volume</option>
+                  {volumes.map(v => <option key={v._id} value={v._id}>{v.volumeName}</option>)}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label>Issue</label>
+                <select name="issue" value={formData.issue} onChange={handleChange} className="form-select" disabled={!issues.length}>
+                  <option value="">Select Issue</option>
+                  {issues.map(i => <option key={i._id} value={i._id}>{i.issueName}</option>)}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label>Article Type</label>
+                <select name="articleType" value={formData.articleType} onChange={handleChange} className="form-select" required>
+                  <option value="">Select Type</option>
+                  <option value="Research Paper">Research Paper</option>
+                  <option value="Review Article">Review Article</option>
+                  <option value="Case Study">Case Study</option>
+                  <option value="Short Communication">Short Communication</option>
+                  <option value="Editorial">Editorial</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="col-12">
+                <label>Cover Image</label>
+                <input type="file" name="coverImage" onChange={handleChange} className="form-control" accept="image/*" />
+              </div>
+              <div className="col-12 mt-3">
+                <label className="form-label">Content</label>
+                <ReactQuill
+                  ref={quillRef} theme="snow" value={formData.content} onChange={handleContentChange}
+                  placeholder="Write your article content here..."
+                  modules={{ toolbar: [[{ header: [1, 2, false] }], ["bold","italic","underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]] }}
+                  formats={["header","bold","italic","underline","list","bullet","link"]}
+                  style={{ height: "300px", marginBottom: "50px" }}
+                />
+              </div>
+              <div className="col-12">
+                <button type="submit" className="btn btn-primary">Submit Article</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
 
-// Quill Toolbar Modules (with custom image handler)
-const modules = (imageHandler) => ({
-  toolbar: {
-    container: [
-      [{ header: [1, 2, 3, false] }],
-      [{ font: [] }],
-      [{ size: [] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ color: [] }, { background: [] }],
-      [{ script: "sub" }, { script: "super" }],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ indent: "-1" }, { indent: "+1" }],
-      [{ align: [] }],
-      ["blockquote", "code-block"],
-      ["link", "image", "video"],
-      ["clean"],
-    ],
-    handlers: { image: imageHandler },
-  },
-});
-
-// Quill Allowed Formats
-const formats = [
-  "header",
-  "font",
-  "size",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "color",
-  "background",
-  "script",
-  "list",
-  "bullet",
-  "indent",
-  "align",
-  "blockquote",
-  "code-block",
-  "link",
-  "image",
-  "video",
-];
-
-
-
-// // RichTextEditor.jsx
-// import React, { useRef, useState } from "react";
-// import ReactQuill from "react-quill";
-// import "react-quill/dist/quill.snow.css";
-
-// export default function RichTextEditor({
-//   value,
-//   onChange,
-//   uploadUrl = "/api/upload",
-//   embedAsBase64 = false,
-// }) {
-//   const quillRef = useRef(null);
-//   const [isUploading, setUploading] = useState(false);
-//   const [title, setTitle] = useState("");
-
-//   // toolbar configuration
-//   const modules = {
-//     toolbar: {
-//       container: [
-//         [{ header: [1, 2, 3, false] }],
-//         ["bold", "italic", "underline", "strike"],
-//         [{ list: "ordered" }, { list: "bullet" }],
-//         ["blockquote", "code-block"],
-//         [{ align: [] }],
-//         ["link", "image", "video"],
-//         ["clean"],
-//       ],
-//       handlers: {
-//         image: () => handleImageInsert(),
-//       },
-//     },
-//   };
-
-//   const formats = [
-//     "header",
-//     "bold",
-//     "italic",
-//     "underline",
-//     "strike",
-//     "list",
-//     "bullet",
-//     "blockquote",
-//     "code-block",
-//     "align",
-//     "link",
-//     "image",
-//     "video",
-//   ];
-
-//   // Insert image after upload or base64 conversion
-//   const insertToEditor = (url) => {
-//     const editor = quillRef.current && quillRef.current.getEditor();
-//     if (!editor) return;
-//     const range = editor.getSelection(true);
-//     editor.insertEmbed(range.index, "image", url);
-//     editor.setSelection(range.index + 1);
-//   };
-
-//   // Image handler
-//   const handleImageInsert = async () => {
-//     const input = document.createElement("input");
-//     input.setAttribute("type", "file");
-//     input.setAttribute("accept", "image/*,video/*");
-//     input.click();
-
-//     input.onchange = async () => {
-//       const file = input.files[0];
-//       if (!file) return;
-
-//       const MAX_MB = 10;
-//       if (file.size / 1024 / 1024 > MAX_MB) {
-//         alert(`File too large. Max ${MAX_MB} MB allowed.`);
-//         return;
-//       }
-
-//       try {
-//         setUploading(true);
-
-//         if (embedAsBase64) {
-//           // base64 fallback
-//           const reader = new FileReader();
-//           reader.onload = () => {
-//             insertToEditor(reader.result);
-//             setUploading(false);
-//           };
-//           reader.onerror = () => {
-//             setUploading(false);
-//             alert("Error reading file");
-//           };
-//           reader.readAsDataURL(file);
-//         } else {
-//           // Upload to backend
-//           const form = new FormData();
-
-//           // IMPORTANT: Spring Boot usually expects "file" or "image"
-//           // Change this based on your controller param name
-//           form.append("file", file);
-
-//           const res = await fetch(uploadUrl, {
-//             method: "POST",
-//             body: form,
-//           });
-
-//           if (!res.ok) {
-//             const text = await res.text();
-//             throw new Error(`Upload failed: ${text}`);
-//           }
-
-//           const data = await res.json();
-
-//           if (!data || !data.url) {
-//             throw new Error("No URL returned from server.");
-//           }
-
-//           insertToEditor(data.url);
-//           setUploading(false);
-//         }
-//       } catch (err) {
-//         setUploading(false);
-//         console.error("Upload error:", err);
-//         alert("Image upload failed: " + err.message);
-//       }
-//     };
-//   };
-
-//   // Submit handler
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     console.log("Article Title:", title);
-//     console.log("Article Content:", value);
-
-//     // Example: send to Spring Boot
-//     fetch("/api/articles", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ title, content: value }),
-//     })
-//       .then((res) => {
-//         if (!res.ok) throw new Error("Failed to save article");
-//         return res.json();
-//       })
-//       .then((data) => {
-//         alert("Article submitted successfully!");
-//         console.log("Saved:", data);
-//       })
-//       .catch((err) => {
-//         console.error(err);
-//         alert("Error saving article: " + err.message);
-//       });
-//   };
-
-//   return (
-//     <div className="container mt-4">
-//       <div className="card">
-//         <div className="card-header">
-//           <h5>Create Article</h5>
-//         </div>
-//         <div className="card-body">
-//           <form onSubmit={handleSubmit}>
-//             {/* Article Title */}
-//             {/* <div className="mb-3">
-//               <label className="form-label">Title</label>
-//               <input
-//                 type="text"
-//                 className="form-control"
-//                 value={title}
-//                 onChange={(e) => setTitle(e.target.value)}
-//                 placeholder="Enter article title"
-//                 required
-//               />
-//             </div> */}
-
-//             <div>
-//               <ReactQuill
-//                 ref={quillRef}
-//                 theme="snow"
-//                 value={value}
-//                 onChange={onChange}
-//                 modules={modules}
-//                 formats={formats}
-//                 placeholder="Write something... (you can insert images/videos)"
-//               />
-//               {isUploading && <div style={{ marginTop: 8 }}>Uploading...</div>}
-//             </div>
-
-//             {/* Submit Button */}
-//             <button type="submit" className="btn btn-primary mt-3">
-//               Submit Article
-//             </button>
-//           </form>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+export default CreateArticle;

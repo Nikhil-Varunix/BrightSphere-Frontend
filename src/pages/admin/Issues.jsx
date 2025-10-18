@@ -1,17 +1,18 @@
 import BreadCrumb from "../../components/BreadCrumb";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { formatDate, formatTime } from "../../utils/time";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Issues = () => {
-  const navigate = useNavigate();
   const [issues, setIssues] = useState([]);
-  const [newIssue, setNewIssue] = useState({ issueName: "", volume: "", description: "", publishedDate: "" });
+  const [journals, setJournals] = useState([]);
   const [volumes, setVolumes] = useState([]);
+  const [selectedJournal, setSelectedJournal] = useState("");
+  const [newIssue, setNewIssue] = useState({ issueName: "", volume: "", journal: selectedJournal, publishedDate: "" });
   const [filters, setFilters] = useState({ search: "" });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -20,24 +21,35 @@ const Issues = () => {
     total: 0,
   });
 
-  // Fetch available volumes for dropdown
-  const fetchVolumes = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const res = await axios.get(`${API_URL}/volumes`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.data.success) setVolumes(res.data.data);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to fetch volumes");
+
+  // Fetch volumes based on selected journal
+  // Fetch volumes based on selected journal
+const fetchVolumes = async (journalId) => {
+  try {
+    if (!journalId) {
+      setVolumes([]);
+      return;
     }
-  };
+    const token = localStorage.getItem("authToken");
+    const res = await axios.get(`${API_URL}/volumes?journal=${journalId}&limit=1000`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.data.success) {
+      // ✅ Filter volumes for the selected journal
+      const filteredVolumes = res.data.data.filter(v => v.journal._id === journalId);
+      setVolumes(filteredVolumes);
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to fetch volumes for selected journal");
+  }
+};
+
 
   // Create new issue
   const handleCreateIssue = async () => {
-    if (!newIssue.issueName.trim() || !newIssue.volume) {
-      toast.error("Please enter all required fields");
+    if (!newIssue.issueName.trim() || !newIssue.volume || !newIssue.journal) {
+      toast.error("Please select journal, volume and enter issue name");
       return;
     }
 
@@ -52,7 +64,7 @@ const Issues = () => {
 
       if (res.data.success) {
         toast.success("Issue created successfully!");
-        setNewIssue({ issueName: "", volume: "", description: "", publishedDate: "" });
+        setNewIssue({ issueName: "", volume: "", journal: selectedJournal, publishedDate: "" });
         fetchIssues();
       } else {
         toast.error(res.data.message || "Failed to create issue");
@@ -62,6 +74,7 @@ const Issues = () => {
       toast.error("Something went wrong while creating issue");
     }
   };
+
 
   // Fetch issues
   const fetchIssues = async (page = 1, limit = 10, search = "") => {
@@ -89,9 +102,50 @@ const Issues = () => {
   };
 
   useEffect(() => {
-    fetchVolumes();
+    fetchJournals();
     fetchIssues(pagination.page, pagination.limit, filters.search);
   }, []);
+
+  // ✅ Fetch all journals and auto-select first one
+  const fetchJournals = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${API_URL}/journals/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        const fetchedJournals = res.data.data;
+        setJournals(fetchedJournals);
+
+        // ✅ If no journal is selected, auto-select first one
+        if (fetchedJournals.length > 0 && !selectedJournal) {
+          const firstJournalId = fetchedJournals[0]._id;
+          setSelectedJournal(firstJournalId);
+          setNewIssue((prev) => ({ ...prev, journal: firstJournalId }));
+          fetchVolumes(firstJournalId); // Load only this journal’s volumes
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch journals");
+    }
+  };
+
+  // ✅ Handle journal change manually
+  const handleJournalChange = (e) => {
+    const journalId = e.target.value;
+    setSelectedJournal(journalId);
+    setNewIssue({ ...newIssue, journal: journalId, volume: "" });
+
+    // Only fetch volumes for selected journal
+    if (journalId) {
+      fetchVolumes(journalId);
+    } else {
+      setVolumes([]);
+    }
+  };
+
 
   // Delete issue
   const handleDelete = async (id) => {
@@ -148,6 +202,34 @@ const Issues = () => {
                 />
 
                 <div className="d-flex align-items-center gap-2 flex-wrap">
+                  {/* Journal Dropdown */}
+                  <select
+                    className="form-control py-2"
+                    style={{ width: "180px", fontSize: "14px" }}
+                    value={selectedJournal}
+                    onChange={handleJournalChange}
+                  >
+                    <option value="">Select Journal</option>
+                    {journals.map((j) => (
+                      <option key={j._id} value={j._id}>{j.title}</option>
+                    ))}
+                  </select>
+
+                  {/* Volume Dropdown */}
+                  <select
+                    className="form-control py-2"
+                    style={{ width: "180px", fontSize: "14px" }}
+                    value={newIssue.volume}
+                    onChange={(e) => setNewIssue({ ...newIssue, volume: e.target.value })}
+                    disabled={!selectedJournal}
+                  >
+                    <option value="">Select Volume</option>
+                    {volumes.map((v) => (
+                      <option key={v._id} value={v._id}>{v.volumeName}</option>
+                    ))}
+                  </select>
+
+                  {/* Issue Name */}
                   <input
                     type="text"
                     placeholder="Issue Name"
@@ -156,20 +238,15 @@ const Issues = () => {
                     value={newIssue.issueName}
                     onChange={(e) => setNewIssue({ ...newIssue, issueName: e.target.value })}
                   />
-                  <select
-                    className="form-control py-2"
-                    style={{ width: "180px", fontSize: "14px" }}
-                    value={newIssue.volume}
-                    onChange={(e) => setNewIssue({ ...newIssue, volume: e.target.value })}
+
+                  <button
+                    className="btn btn-primary d-flex align-items-center"
+                    onClick={handleCreateIssue}
+                    disabled={!selectedJournal || !newIssue.volume || !newIssue.issueName.trim()}
                   >
-                    <option value="">Select Volume</option>
-                    {volumes.map((v) => (
-                      <option key={v._id} value={v._id}>{v.volumeName}</option>
-                    ))}
-                  </select>
-                  <button className="btn btn-primary d-flex align-items-center" onClick={handleCreateIssue}>
                     <i className="ti ti-plus me-1"></i> Add Issue
                   </button>
+
                 </div>
               </div>
 
@@ -195,43 +272,19 @@ const Issues = () => {
                           <td>{index + 1 + (pagination.page - 1) * pagination.limit}</td>
                           <td>{i.issueName}</td>
                           <td>{i.volume?.volumeName || "--"}</td>
-                          <td>{i.createdBy.firstName + " " + i.createdBy.lastName || "--"}
-                            <br />
-                            <small>{i.createdBy.email || "--"}</small>
-                          </td>
-                          <td>{formatDate(i.createdAt) || "--"}
-                            <br />
-                            <small>
-                              {formatTime(i.createdAt) || "--"}
-                            </small>
-                          </td>
-                          <td>{formatDate(i.updatedAt) || "--"}
-                            <br />
-                            <small>
-                              {formatTime(i.updatedAt) || "--"}
-                            </small>
-                          </td>
-
+                          <td>{i.createdBy.firstName + " " + i.createdBy.lastName || "--"}</td>
+                          <td>{formatDate(i.createdAt)}<br /><small>{formatTime(i.createdAt)}</small></td>
+                          <td>{formatDate(i.updatedAt)}<br /><small>{formatTime(i.updatedAt)}</small></td>
+                          <td><span className={`badge ${i.status ? "bg-light-success" : "bg-light-danger"}`}>{i.status ? "Active" : "Inactive"}</span></td>
                           <td>
-                            <span className={`badge ${i.status ? "bg-light-success" : "bg-light-danger"}`}>
-                              {i.status ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td>
-                            <ul className="list-inline m-0">
-                              <li className="list-inline-item cursor-pointer">
-                                <span className="btn btn-sm btn-light-danger" title="Delete" onClick={() => handleDelete(i._id)}>
-                                  <i className="ti ti-trash f-18" />
-                                </span>
-                              </li>
-                            </ul>
+                            <button className="btn btn-sm btn-light-danger" onClick={() => handleDelete(i._id)}>
+                              <i className="ti ti-trash f-18" />
+                            </button>
                           </td>
                         </tr>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan="7" className="text-center">No issues found.</td>
-                      </tr>
+                      <tr><td colSpan="8" className="text-center">No issues found.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -240,21 +293,18 @@ const Issues = () => {
               {/* Pagination */}
               <div className="datatable-bottom">
                 <div className="datatable-info">
-                  Showing {issues.length > 0 ? 1 + (pagination.page - 1) * pagination.limit : 0} 
-                  to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} entries
+                  Showing {issues.length > 0 ? 1 + (pagination.page - 1) * pagination.limit : 0} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} entries
                 </div>
                 <nav className="datatable-pagination">
                   <ul className="datatable-pagination-list">
                     <li className={`datatable-pagination-list-item ${pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""}`}>
                       <button onClick={() => handlePageChange(pagination.page - 1)}>‹</button>
                     </li>
-
                     {Array.from({ length: pagination.totalPages }, (_, i) => (
-                      <li key={i+1} className={`datatable-pagination-list-item ${pagination.page === i+1 ? "datatable-active" : ""}`}>
-                        <button onClick={() => handlePageChange(i+1)}>{i+1}</button>
+                      <li key={i + 1} className={`datatable-pagination-list-item ${pagination.page === i + 1 ? "datatable-active" : ""}`}>
+                        <button onClick={() => handlePageChange(i + 1)}>{i + 1}</button>
                       </li>
                     ))}
-
                     <li className={`datatable-pagination-list-item ${pagination.page >= pagination.totalPages ? "datatable-hidden datatable-disabled" : ""}`}>
                       <button onClick={() => handlePageChange(pagination.page + 1)}>›</button>
                     </li>

@@ -1,107 +1,101 @@
-// src/pages/Articles.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import BreadCrumb from "../components/BreadCrumb";
-import { useNavigate } from "react-router-dom";
 
 const Articles = () => {
-  const [logs, setLogs] = useState([
-    {
-      id: "1",
-      type:"Research",
-      title: "Go Green, Green Innovation for Global Sustainable Development",
-      author: "Pravinaben Mangubhai Gamit",
-      description:
-        "Exploring applications of AI in the healthcare sector and how they transform diagnosis, treatment, and patient care with better efficiency and accuracy.",
-      submission: "2025-12-25T10:30:00Z",
-      downloads: 980,
-      views: 200,
-      links: "https://example.com/article1",
-      image: "/assets/images/pages/card-1.png",
-      status: "Active",
-      lastLogin: "2025-09-21T15:20:00Z",
-    },
-  ]);
+  const [articles, setArticles] = useState([]);
+  const [filters, setFilters] = useState({ search: "" });
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    total: 0,
+    totalPages: 1,
+  });
   const navigate = useNavigate();
 
+  // Fetch articles from backend
+  const fetchArticles = async (page = 1) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/articles?page=${page}&limit=${pagination.limit}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  const [filters, setFilters] = useState({ search: "" });
-  const [selectedLog, setSelectedLog] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
-  const [showInteractionDetails, setShowInteractionDetails] = useState(false);
+      const data = res.data.data || [];
+      const total = res.data.total || data.length;
 
-  // Filtered articles based on search input
-  const filteredLogs = logs.filter(
-    (l) =>
-      l.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-      l.author.toLowerCase().includes(filters.search.toLowerCase())
-  );
-
-  const handleDelete = (id) => {
-    setLogs(logs.filter((l) => l.id !== id));
-    toast.success("Article deleted");
+      setArticles(data);
+      setPagination((prev) => ({
+        ...prev,
+        page,
+        total,
+        totalPages: Math.ceil(total / prev.limit),
+      }));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch articles");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderSortIcons = (key) => (
-    <span
-      style={{
-        display: "inline-flex",
-        flexDirection: "column",
-        marginLeft: "5px",
-        verticalAlign: "middle",
-      }}
-    >
-      <span
-        style={{
-          cursor: "pointer",
-          fontSize: "10px",
-          lineHeight: "12px",
-          color:
-            sortConfig.key === key && sortConfig.direction === "asc"
-              ? "#000"
-              : "#ccc",
-        }}
-        onClick={() => setSortConfig({ key, direction: "asc" })}
-      >
-        ▲
-      </span>
-      <span
-        style={{
-          cursor: "pointer",
-          fontSize: "10px",
-          lineHeight: "10px",
-          color:
-            sortConfig.key === key && sortConfig.direction === "desc"
-              ? "#000"
-              : "#ccc",
-        }}
-        onClick={() => setSortConfig({ key, direction: "desc" })}
-      >
-        ▼
-      </span>
-    </span>
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  // Filter by title or author
+  const filteredArticles = articles.filter(
+    (a) =>
+      a.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      a.author?.toLowerCase().includes(filters.search.toLowerCase())
   );
+
+  // Delete article
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this article?")) return;
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(`${import.meta.env.VITE_API_URL}/articles/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Article deleted successfully");
+      fetchArticles(pagination.page);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete article");
+    }
+  };
+
+  // Pagination handler
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      fetchArticles(newPage);
+    }
+  };
 
   return (
     <>
       {/* Breadcrumb + Create Button */}
-     <div className="d-flex justify-content-between align-items-center mb-4">
-             <BreadCrumb subLabel="Articles"/>
-             <div className="d-flex align-items-start gap-2 flex-wrap">
-              <Link to="/article/create-article" className="btn btn-primary d-flex align-items-center">
-        <i className="ti ti-plus f-24"></i> Create Article
-        </Link>
-             </div>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <BreadCrumb subLabel="Articles" />
+        <div className="d-flex align-items-start gap-2 flex-wrap">
+          <Link
+            to="/article/create-article"
+            className="btn btn-primary d-flex align-items-center"
+          >
+            <i className="ti ti-plus f-24"></i> Create Article
+          </Link>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="row">
-        <div className="col-12">
-          <div className="card table-card">
-            <div className="card-body pt-3">
-              <div className="d-flex align-items-start mb-3 px-3 justify-content-between flex-wrap gap-2">
-        <div className="col-12 col-md-3">
+      {/* Search Bar */}
+      <div className="row mb-3">
+        <div className="col-12 col-md-4">
           <input
             type="text"
             className="form-control py-2"
@@ -113,135 +107,157 @@ const Articles = () => {
           />
         </div>
       </div>
-              <div className="table-responsive">
-                <table className="table table-hover">
-            <thead>
-              <tr>
-                <th>S.No {renderSortIcons("serialNumber")}</th>
-                <th>Image</th>
-                <th>Title {renderSortIcons("title")}</th>
-                 <th>Type {renderSortIcons("type")}</th>
-                <th>Author {renderSortIcons("author")}</th>
-                <th>Description {renderSortIcons("description")}</th>
-                <th>Published Date {renderSortIcons("submission")}</th>
-                <th>Views {renderSortIcons("views")}</th>
-                <th>Downloads {renderSortIcons("downloads")}</th>
-                <th>Links {renderSortIcons("links")}</th>
-                <th>Status {renderSortIcons("status")}</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.map((l, i) => (
-                <tr key={l.id}>
-                  <td>{i + 1}</td>
-                  <td>
-                    <a href={l.links} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={l.image}
-                        alt={l.title}
-                        style={{
-                          width: "60px",
-                          height: "40px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </a>
-                  </td>
-                  {/* Title truncated with tooltip */}
-                  <td title={l.title} className="text-truncate" style={{ maxWidth: "180px" }}>
-                    {l.title}
-                  </td>
-                   <td>{l.type}</td>
-                  <td>{l.author}</td>
-                  {/* Description truncated with tooltip */}
-                  <td title={l.description} className="text-truncate" style={{ maxWidth: "180px" }}>
-                    {l.description}
-                  </td>
-                  <td>
-                    <time dateTime={l.submission}>
-                      {new Date(l.submission).toLocaleDateString()}
-                      <br />
-                      <small className="text-muted">
-                        {new Date(l.submission).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </small>
-                    </time>
-                  </td>
-                  <td>{l.views}</td>
-                  <td>{l.downloads}</td>
-                  <td>
-                    <a
-                      href={l.links}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary"
-                    >
-                      View Link
-                    </a>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        l.status === "Active" ? "bg-light-success" : "bg-light-danger"
-                      }`}
-                    >
-                      {l.status}
-                    </span>
-                  </td>
-                  <td>
-                  <button className="avtar avtar-s btn-light-primary mx-1"
-                    onClick={() => navigate(`/articles/article-details/${l.id}`)}>
-                    <i className="ti ti-eye"></i>
-                  </button>
-                  <button className="avtar avtar-s btn-light-warning mx-1"
-                    onClick={() => navigate(`/article/update-article/${l.id}`)}>
-                    <i className="ti ti-pencil"></i>
-                  </button>
 
-                    <button
-                     className="avtar avtar-s btn-light-danger mx-1"
-                      onClick={() => handleDelete(l.id)}
-                    >
-                      <i className="ti ti-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredLogs.length === 0 && (
-                <tr>
-                  <td colSpan={11} className="text-center text-muted">
-                    No articles found.
-                  </td>
-                </tr>
+      {/* Table */}
+      <div className="row">
+        <div className="col-12">
+          <div className="card table-card">
+            <div className="card-body pt-3">
+              {loading ? (
+                <div className="text-center py-4">Loading...</div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>S.No</th>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Author</th>
+                        <th>Published Date</th>
+                        <th>Views</th>
+                        <th>Downloads</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredArticles.map((article, i) => (
+                        <tr key={article._id}>
+                          <td>{(pagination.page - 1) * pagination.limit + i + 1}</td>
+                          <td>
+                            {article.coverImage ? (
+                              <img
+                                src={`${import.meta.env.VITE_BASE_URL}/${article.coverImage}`}
+                                alt={article.title}
+                                style={{
+                                  width: "60px",
+                                  height: "40px",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <span className="text-muted">No Image</span>
+                            )}
+                          </td>
+                          <td
+                            title={article.title}
+                            className="text-truncate"
+                            style={{ maxWidth: "180px" }}
+                          >
+                            {article.title}
+                          </td>
+                          <td>{article.articleType || "-"}</td>
+                          <td>{article.author || "-"}</td>
+                          <td>
+                            {article.publishedAt
+                              ? new Date(article.publishedAt).toLocaleDateString()
+                              : "-"}
+                          </td>
+                          <td>{article.views || 0}</td>
+                          <td>{article.downloads || 0}</td>
+                          <td>
+                            <span
+                              className={`badge ${
+                                article.status === "published"
+                                  ? "bg-light-success"
+                                  : "bg-light-warning"
+                              }`}
+                            >
+                              {article.status || "Draft"}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-light-primary mx-1"
+                              onClick={() =>
+                                navigate(`/articles/article-details/${article._id}`)
+                              }
+                            >
+                              <i className="ti ti-eye"></i>
+                            </button>
+                            <button
+                              className="btn btn-sm btn-light-warning mx-1"
+                              onClick={() =>
+                                navigate(`/article/update-article/${article._id}`)
+                              }
+                            >
+                              <i className="ti ti-pencil"></i>
+                            </button>
+                            <button
+                              className="btn btn-sm btn-light-danger mx-1"
+                              onClick={() => handleDelete(article._id)}
+                            >
+                              <i className="ti ti-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredArticles.length === 0 && (
+                        <tr>
+                          <td colSpan={11} className="text-center text-muted">
+                            No articles found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               )}
-            </tbody>
-            </table>
-              </div>
+
+              {/* Pagination */}
               <div className="datatable-bottom">
-                <div className="datatable-info">Showing 1 to 5 of 6 entries</div>
+                <div className="datatable-info">
+                  Showing{" "}
+                  {articles.length > 0
+                    ? 1 + (pagination.page - 1) * pagination.limit
+                    : 0}{" "}
+                  to{" "}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+                  {pagination.total} entries
+                </div>
                 <nav className="datatable-pagination">
                   <ul className="datatable-pagination-list">
-                    <li className="datatable-pagination-list-item datatable-hidden datatable-disabled">
-                      <button data-page={1} className="datatable-pagination-list-item-link">
+                    <li
+                      className={`datatable-pagination-list-item ${
+                        pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
+                      }`}
+                    >
+                      <button onClick={() => handlePageChange(pagination.page - 1)}>
                         ‹
                       </button>
                     </li>
-                    <li className="datatable-pagination-list-item datatable-active">
-                      <button data-page={1} className="datatable-pagination-list-item-link">
-                        1
-                      </button>
-                    </li>
-                    <li className="datatable-pagination-list-item">
-                      <button data-page={2} className="datatable-pagination-list-item-link">
-                        2
-                      </button>
-                    </li>
-                    <li className="datatable-pagination-list-item">
-                      <button data-page={2} className="datatable-pagination-list-item-link">
+                    {Array.from({ length: pagination.totalPages }, (_, i) => (
+                      <li
+                        key={i + 1}
+                        className={`datatable-pagination-list-item ${
+                          pagination.page === i + 1 ? "datatable-active" : ""
+                        }`}
+                      >
+                        <button onClick={() => handlePageChange(i + 1)}>
+                          {i + 1}
+                        </button>
+                      </li>
+                    ))}
+                    <li
+                      className={`datatable-pagination-list-item ${
+                        pagination.page >= pagination.totalPages
+                          ? "datatable-hidden datatable-disabled"
+                          : ""
+                      }`}
+                    >
+                      <button onClick={() => handlePageChange(pagination.page + 1)}>
                         ›
                       </button>
                     </li>
@@ -252,7 +268,6 @@ const Articles = () => {
           </div>
         </div>
       </div>
-    
     </>
   );
 };
