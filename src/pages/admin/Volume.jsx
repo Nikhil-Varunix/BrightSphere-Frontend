@@ -19,7 +19,7 @@ const Volumes = () => {
     total: 0,
   });
 
-  
+
   // Fetch all journals (no pagination)
   const fetchJournals = async () => {
     try {
@@ -227,52 +227,49 @@ const Volumes = () => {
                 </table>
               </div>
               {/* Pagination */}
-<div className="datatable-bottom px-3 pb-3">
-  <div className="datatable-info">
-    Showing{" "}
-    {volumes.length > 0
-      ? 1 + (pagination.page - 1) * pagination.limit
-      : 0}{" "}
-    to{" "}
-    {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-    {pagination.total} entries
-  </div>
-  <nav className="datatable-pagination">
-    <ul className="datatable-pagination-list">
-      {/* Previous button */}
-      <li
-        className={`datatable-pagination-list-item ${
-          pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
-        }`}
-      >
-        <button onClick={() => handlePageChange(pagination.page - 1)}>‹</button>
-      </li>
+              <div className="datatable-bottom px-3 pb-3">
+                <div className="datatable-info">
+                  Showing{" "}
+                  {volumes.length > 0
+                    ? 1 + (pagination.page - 1) * pagination.limit
+                    : 0}{" "}
+                  to{" "}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+                  {pagination.total} entries
+                </div>
+                <nav className="datatable-pagination">
+                  <ul className="datatable-pagination-list">
+                    {/* Previous button */}
+                    <li
+                      className={`datatable-pagination-list-item ${pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
+                        }`}
+                    >
+                      <button onClick={() => handlePageChange(pagination.page - 1)}>‹</button>
+                    </li>
 
-      {/* Page numbers */}
-      {Array.from({ length: pagination.totalPages }, (_, i) => (
-        <li
-          key={i + 1}
-          className={`datatable-pagination-list-item ${
-            pagination.page === i + 1 ? "datatable-active" : ""
-          }`}
-        >
-          <button onClick={() => handlePageChange(i + 1)}>{i + 1}</button>
-        </li>
-      ))}
+                    {/* Page numbers */}
+                    {Array.from({ length: pagination.totalPages }, (_, i) => (
+                      <li
+                        key={i + 1}
+                        className={`datatable-pagination-list-item ${pagination.page === i + 1 ? "datatable-active" : ""
+                          }`}
+                      >
+                        <button onClick={() => handlePageChange(i + 1)}>{i + 1}</button>
+                      </li>
+                    ))}
 
-      {/* Next button */}
-      <li
-        className={`datatable-pagination-list-item ${
-          pagination.page >= pagination.totalPages
-            ? "datatable-hidden datatable-disabled"
-            : ""
-        }`}
-      >
-        <button onClick={() => handlePageChange(pagination.page + 1)}>›</button>
-      </li>
-    </ul>
-  </nav>
-</div>
+                    {/* Next button */}
+                    <li
+                      className={`datatable-pagination-list-item ${pagination.page >= pagination.totalPages
+                          ? "datatable-hidden datatable-disabled"
+                          : ""
+                        }`}
+                    >
+                      <button onClick={() => handlePageChange(pagination.page + 1)}>›</button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
 
 
             </div>

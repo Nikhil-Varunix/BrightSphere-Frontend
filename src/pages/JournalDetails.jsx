@@ -1,155 +1,157 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
 import BreadCrumb from "../components/BreadCrumb";
 
-export default function JournalPage() {
+const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const JournalDetails = () => {
+  const { id } = useParams();
+  const [journal, setJournal] = useState(null);
+
+  useEffect(() => {
+    const fetchJournal = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/journals/v2/${id}`);
+        if (res.data.success) setJournal(res.data.data);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to fetch journal details");
+      }
+    };
+    fetchJournal();
+  }, [id]);
+
+  const truncateText = (text, max = 300) => {
+    if (!text) return "";
+    const plain = text.replace(/<\/?[^>]+(>|$)/g, "");
+    return plain.length > max ? plain.slice(0, max) + "..." : plain;
+  };
+
+  if (!journal) return <p className="text-center py-5">Loading...</p>;
+
   return (
-    <>
-     <div className="d-flex justify-content-between align-items-center mb-4">
-                  <BreadCrumb subLabel="Journal Details"/>
-                   <div className="d-flex align-items-start gap-2 flex-wrap">
-                          <Link to="/journals" className="btn btn-primary d-flex align-items-center">
-                    <i className="ti ti-arrow-left f-24"></i> Back to Journals
-                    </Link>
-                         </div>
-    </div>
-    <div className="container">
-      {/* Journal Header with Image */}
-      <div className="row align-items-center ">
+    <div className="container py-5">
+      {/* Breadcrumb & Back */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <BreadCrumb subLabel="Journals" pageTitle={journal.title} />
+        <div className="d-flex align-items-start gap-2 flex-wrap">
+          <Link to="/journals" className="btn btn-primary">
+            <i className="ti ti-arrow-left"></i> Back to Journals
+          </Link>
+        </div>
+      </div>
+
+
+      {/* Header */}
+      <div className="row mb-4">
         <div className="col-md-8">
-          <h1 className="fw-bold">Journal of Earth And Environmental Science</h1>
-          <p className="text-muted fs-5">
-            Exploring Nature, Sustaining the Future
-          </p>
+          <h1 className="fw-bold">{journal.title}</h1>
+          <p className="text-muted fs-5">{journal.subTitle}</p>
         </div>
         <div className="col-md-4 text-center">
           <img
-            src="/assets/images/pages/journal-1.png"
+            src={journal.coverImage ? `${BASE_URL}/${journal.coverImage}` : "/assets/img/journal/default-cover.jpg"}
             alt="Journal Cover"
-            className="img-fluid shadow-sm"
+            className="img-fluid shadow-sm rounded"
           />
         </div>
       </div>
 
-      {/* Journal Description */}
-      <div className="mb-5">
-        <h3 className="mb-3">
-          <i className="ti ti-info-circle text-warning me-2"></i>About the Journal
-        </h3>
-        <p className="lead">
-          The Journal of Earth and Environmental Science is an international,
-          peer-reviewed platform dedicated to advancing knowledge and research
-          in the fields of Earth sciences and environmental studies. The journal
-          aims to publish original research, reviews, case studies, and
-          technical communications that address the scientific understanding of
-          the Earth’s structure, processes, natural resources, and the complex
-          interactions between humans and the environment.
-        </p>
-      </div>
+      {/* Tabs */}
+      <ul className="nav nav-tabs invoice-tab border-bottom mb-3" id="journalTab" role="tablist">
+        {["About", "Editorial Board", "Articles"].map((t, i) => (
+          <li className="nav-item" key={t} role="presentation">
+            <button
+              className={`nav-link ${i === 0 ? "active" : ""}`}
+              data-bs-toggle="tab"
+              data-bs-target={`#tab${i + 1}`}
+              type="button"
+            >
+              {t}
+            </button>
+          </li>
+        ))}
+      </ul>
 
-      {/* Editorial Board */}
-      <div className="mb-5">
-        <h3 className="mb-4">
-          <i className="ti ti-users text-primary me-2"></i>Editorial Board
-        </h3>
+      <div className="tab-content">
+        {/* About */}
+        <div className="tab-pane fade show active" id="tab1">
+          <div dangerouslySetInnerHTML={{ __html: journal.content }} />
+        </div>
 
-        <div className="row g-4">
-          {/* Editor 1 */}
-          <div className="col-md-6">
-            <div className="card shadow-sm h-100">
-              <div className="card-body">
-                <h5 className="fw-bold mb-1">Sandro Gelsomino</h5>
-                <p className="mb-1">Professor of Cardiac Surgery</p>
-                <p className="mb-1">
-                  Head of Cardiothoracic Surgery Research Program
-                </p>
-                <p className="mb-1">University of Maastricht, CARIM</p>
-                <p className="mb-1">Maastricht, Netherlands</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Editor 2 */}
-          <div className="col-md-6">
-            <div className="card shadow-sm h-100">
-              <div className="card-body">
-                <h5 className="fw-bold mb-1">Vikas Kumar</h5>
-                <p className="mb-1">Postdoctoral-Visiting Fellow</p>
-                <p className="mb-1">Laboratory of Cardiovascular Science (LCS)</p>
-                <p className="mb-1">NIH-National Institute on Aging</p>
-                <p className="mb-1">
-                  251 Bayview Blvd., Suite 100, Baltimore, USA
-                </p>
-              </div>
-            </div>
+        {/* Editorial Board */}
+        <div className="tab-pane fade" id="tab2">
+          <div className="row mt-3">
+            {journal.editors.length === 0 && <p>No editors assigned yet.</p>}
+            {journal.editors.map((e) => (
+              <>
+                <div className="col-md-4 mb-3" key={e._id}>
+                  <div className="p-3 border rounded shadow-sm h-100 d-flex ">
+                    <div className="p-3 pt-0">
+                      <img src="/assets/images/user/avatar-1.jpg" alt="user-image" class="user-avtar rounded-circle shadow-sm"></img>
+                    </div>
+                    <div>
+                      <h5>{e.firstName} {e.lastName}</h5>
+                      <p className="mb-0">{e.email}</p>
+                      <p className="mb-0">{e.department} Department</p>
+                      <p className="mb-0">{e.university}</p>
+                      <p className="mb-0">{e.address}</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Articles Section */}
-      <div className="container mt-4">
-        <h3 className="mb-4">
-          <i className="ti ti-file-text text-success me-2"></i>Articles
-        </h3>
+        {/* Articles */}
+        <div className="tab-pane fade" id="tab3">
+          {journal.articles.length === 0 && <p className="mt-3">No articles published yet.</p>}
 
-        <div className="row g-4">
-          {/* Article Card 1 */}
-          <div className="col-md-6">
-            <div className="card shadow-sm h-100">
-              <div className="card-body">
-                <h5 className="fw-bold mb-1">
-                  Go Green, Green Innovation for Global
-                </h5>
-                <p className="mb-1 text-muted">
-                  By: <span className="fw-semibold">Pravinaben Mangubhai Gamit</span> | Dec 25
-                </p>
-                <p className="text-muted small">
-                  “LIVE GREEN THINK GREEN LOVE GREEN” Let’s go green together. 
-                  “A meter of green is greener than a centimetre.” I am in love 
-                  with this green Earth – Charles Lamb. Nowadays, Go Green has 
-                  become an initiative protecting the natural resources for the 
-                  next generation...
-                </p>
-
-                <div className="d-flex justify-content-between align-items-center">
-                  <span>
-                    <i className="ti ti-download text-danger me-1"></i>200
-                  </span>
-                  <span>
-                    <i className="ti ti-eye text-primary me-1"></i>980
-                  </span>
-                </div>
+          {journal.articles.map((a) => (
+            <Link to={`/articles/article-details/${a._id}`} className="row align-items-center mb-3 article-card" key={a._id}>
+              <div className="col-md-4">
+                <img
+                  src={`${BASE_URL}/${a.coverImage}`}
+                  alt={a.title}
+                  className="img-fluid rounded shadow-sm"
+                />
               </div>
-            </div>
-          </div>
+              <div className="col-md-8">
 
-          {/* Article Card 2 */}
-          <div className="col-md-6">
-            <div className="card shadow-sm h-100">
-              <div className="card-body">
-                <h5 className="fw-bold mb-1">Another Inspiring Article</h5>
-                <p className="mb-1 text-muted">
-                  By: <span className="fw-semibold">John Doe</span> | Dec 20
-                </p>
-                <p className="text-muted small">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                  Proin varius risus a felis aliquet, vitae vulputate lorem gravida...
-                </p>
 
-                <div className="d-flex justify-content-between align-items-center">
-                  <span>
-                    <i className="ti ti-download text-danger me-1"></i>120
-                  </span>
-                  <span>
-                    <i className="ti ti-eye text-primary me-1"></i>450
-                  </span>
+                <div className="d-flex justify-content-between">
+                  <div>
+                    <h5>{a.title}</h5>
+                    <p className="text-muted small">
+                      by <strong>{a.authorName}</strong> on {new Date(a.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="me-3"><i className="text-primary ti ti-eye"></i> <span className="text-white">{a.views}</span></span>
+                    <span><i className="text-primary ti ti-download"></i> <span className="text-white">{a.downloads}</span></span>
+                  </div>
                 </div>
+                <p style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  color: "whitesmoke"
+                }}>
+                  {truncateText(a.content)}
+                </p>
+
               </div>
-            </div>
-          </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>
-    </>
   );
-}
+};
+
+export default JournalDetails;

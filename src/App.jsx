@@ -31,9 +31,9 @@ import Editorials from './pages/admin/Editorials'
 import CreateEditors from './pages/admin/CreateEditors'
 import UpdateEditors from './pages/admin/UpdateEditors'
 import Permissions from './pages/admin/Permissions'
-import Designations  from './pages/admin/Designations'
-import Volume  from './pages/admin/Volume'
-import Issues  from './pages/admin/Issues'
+import Designations from './pages/admin/Designations'
+import Volume from './pages/admin/Volume'
+import Issues from './pages/admin/Issues'
 
 import Users from './pages/users/Users'
 import UserTracking from './pages/logs/UserTracking';
@@ -43,11 +43,13 @@ import TimeStamps from './pages/logs/TimeStamps';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import UpdateUser from './components/UpdateUser';
+import SubmissionsDashboard from './pages/submissions/SubmissionsDashboard';
+import SubmissionDetails from './pages/submissions/SubmissionDetails';
 
 function App() {
   const location = useLocation();
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -60,7 +62,7 @@ function App() {
     }
   }, [location.pathname]);
 
-   useEffect(() => {
+  useEffect(() => {
     // Axios interceptor to handle 401 globally
     const interceptor = axios.interceptors.response.use(
       res => res,
@@ -71,7 +73,7 @@ function App() {
             localStorage.clear();
             window.location.href = "/login";
           }, 2500);
-          return new Promise(() => {}); // hang the promise
+          return new Promise(() => { }); // hang the promise
         }
         return Promise.reject(err);
       }
@@ -95,13 +97,13 @@ function App() {
             <Route path="/register" element={<Register />} />
 
             <Route path="/" element={<Home />} />
-             <Route path="user/create-user" element={<CreateUser />} />
+            <Route path="user/create-user" element={<CreateUser />} />
             <Route path="/articles" element={<Articles />} />
             <Route path="/article/create-article" element={<CreateArticle />} />
             <Route path="/article/update-article/:id" element={<UpdateArticle />} />
             <Route path="/articles/article-details/:id" element={<ArticleDetails />} />
             <Route path="/journal/update-journal/:id" element={<UpdateJournal />} />
-             <Route path="/journal/Journal-details/:id" element={<JournalDetails />} />
+            <Route path="/admin/journals/journal-details/:id" element={<JournalDetails />} />
             <Route path="/journals" element={<Journals />} />
             <Route path="/journals/create-journal" element={<CreateJournal />} />
             <Route path="/journals/create-journal-2" element={<CreateJournal2 />} />
@@ -116,9 +118,11 @@ function App() {
             <Route path="/admin/volume" element={<Volume />} />
             <Route path="/admin/issues" element={<Issues />} />
 
+            <Route path="/form-submissions" element={<SubmissionsDashboard />} />
+            <Route path="/form-submissions/view/:id" element={<SubmissionDetails />} />
             {/* User Routes Start  */}
             <Route path="/users" element={<Users />} />
-             <Route path="/users/update-user/:id" element={<UpdateUser />} />
+            <Route path="/users/update-user/:id" element={<UpdateUser />} />
             {/* <Route path="/users/list" element={<ListUser />} /> */}
             {/* User Routes END */}
 
@@ -126,7 +130,7 @@ function App() {
             {/* Logs Start */}
             {/* <Route path="/logs" element={<Logs />} /> */}
             <Route path="/logs/user-tracking" element={<UserTracking />} />
-            <Route path="/logs/time-stamps" element={<TimeStamps />} /> 
+            <Route path="/logs/time-stamps" element={<TimeStamps />} />
             {/* Logs END */}
 
           </Routes>

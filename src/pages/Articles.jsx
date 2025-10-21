@@ -159,7 +159,12 @@ const Articles = () => {
                             {article.title}
                           </td>
                           <td>{article.articleType || "-"}</td>
-                          <td>{article.author || "-"}</td>
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "180px" }}
+                          >
+                            {article.author || "-"}
+                          </td>
                           <td>
                             {article.publishedAt
                               ? new Date(article.publishedAt).toLocaleDateString()
@@ -169,11 +174,10 @@ const Articles = () => {
                           <td>{article.downloads || 0}</td>
                           <td>
                             <span
-                              className={`badge ${
-                                article.status === "published"
-                                  ? "bg-light-success"
-                                  : "bg-light-warning"
-                              }`}
+                              className={`badge ${article.status === "published"
+                                ? "bg-light-success"
+                                : "bg-light-warning"
+                                }`}
                             >
                               {article.status || "Draft"}
                             </span>
@@ -230,9 +234,8 @@ const Articles = () => {
                 <nav className="datatable-pagination">
                   <ul className="datatable-pagination-list">
                     <li
-                      className={`datatable-pagination-list-item ${
-                        pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
-                      }`}
+                      className={`datatable-pagination-list-item ${pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
+                        }`}
                     >
                       <button onClick={() => handlePageChange(pagination.page - 1)}>
                         ‹
@@ -241,9 +244,8 @@ const Articles = () => {
                     {Array.from({ length: pagination.totalPages }, (_, i) => (
                       <li
                         key={i + 1}
-                        className={`datatable-pagination-list-item ${
-                          pagination.page === i + 1 ? "datatable-active" : ""
-                        }`}
+                        className={`datatable-pagination-list-item ${pagination.page === i + 1 ? "datatable-active" : ""
+                          }`}
                       >
                         <button onClick={() => handlePageChange(i + 1)}>
                           {i + 1}
@@ -251,11 +253,10 @@ const Articles = () => {
                       </li>
                     ))}
                     <li
-                      className={`datatable-pagination-list-item ${
-                        pagination.page >= pagination.totalPages
-                          ? "datatable-hidden datatable-disabled"
-                          : ""
-                      }`}
+                      className={`datatable-pagination-list-item ${pagination.page >= pagination.totalPages
+                        ? "datatable-hidden datatable-disabled"
+                        : ""
+                        }`}
                     >
                       <button onClick={() => handlePageChange(pagination.page + 1)}>
                         ›

@@ -104,8 +104,8 @@ const Header = () => {
               {/* Users */}
               <li
                 className="pc-item pc-hasmenu"
-                ref={(el) => (menuRefs.current[3] = el)}
-                onClick={() => handleMenuClick(3)}
+                ref={(el) => (menuRefs.current[1] = el)}
+                onClick={() => handleMenuClick(1)}
               >
                 <Link to="/users" className={`pc-link ${isSubmenuActive("/users") ? "active" : ""}`}>
                   <span className="pc-micon"><i className="ph-duotone ph-users" /></span>
@@ -126,8 +126,8 @@ const Header = () => {
                 {/* Journals */}
               <li
                 className="pc-item pc-hasmenu"
-                ref={(el) => (menuRefs.current[5] = el)}
-                onClick={() => handleMenuClick(5)}
+                ref={(el) => (menuRefs.current[2] = el)}
+                onClick={() => handleMenuClick(2)}
               >
                 <Link to="/journals" className={`pc-link ${isSubmenuActive("/journals") ? "active" : ""}`}>
                    <span className="pc-micon"><i className="ph-duotone ph-book" /></span>
@@ -140,8 +140,8 @@ const Header = () => {
               {/* Articles */}
               <li
                 className="pc-item pc-hasmenu"
-                ref={(el) => (menuRefs.current[4] = el)}
-                onClick={() => handleMenuClick(4)}
+                ref={(el) => (menuRefs.current[3] = el)}
+                onClick={() => handleMenuClick(3)}
               >
                 <Link to="/articles" className={`pc-link ${isSubmenuActive("/articles") ? "active" : ""}`}>
                    <span className="pc-micon"><i className="ph-duotone ph-file-text" /></span>
@@ -175,6 +175,17 @@ const Header = () => {
                 </ul>
               </li>
 
+  {/* Articles */}
+              <li
+                className="pc-item pc-hasmenu"
+                ref={(el) => (menuRefs.current[4] = el)}
+                onClick={() => handleMenuClick(4)}
+              >
+                <Link to="/form-submissions" className={`pc-link ${isSubmenuActive("/form-submissions") ? "active" : ""}`}>
+                   <span className="pc-micon"><i className="ph-duotone ph-file-text" /></span>
+                  <span className="pc-mtext">Form Submissions</span>
+                </Link>
+              </li>
             </ul>
           </div>
           <div className="card pc-user-card">
@@ -244,9 +255,9 @@ const Header = () => {
                 </a>
               </li>
 
-              <li className="pc-h-item d-none d-md-inline-flex">
+              {/* <li className="pc-h-item d-none d-md-inline-flex">
                 <DashboardSearch />
-              </li>
+              </li> */}
             </ul>
           </div>
           {/* [Mobile Media Block end] */}
