@@ -91,7 +91,9 @@ const JournalDetails = () => {
                 <div className="col-md-4 mb-3" key={e._id}>
                   <div className="p-3 border rounded shadow-sm h-100 d-flex ">
                     <div className="p-3 pt-0">
-                      <img src="/assets/images/user/avatar-1.jpg" alt="user-image" class="user-avtar rounded-circle shadow-sm"></img>
+                      <img 
+                      src={`${BASE_URL}/${e.coverImage}`}
+                       alt="user-image" class="user-avtar rounded-circle shadow-sm"></img>
                     </div>
                     <div>
                       <h5>{e.firstName} {e.lastName}</h5>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; 
+import "react-quill/dist/quill.snow.css";
 import Select from "react-select";
 import BreadCrumb from "../../components/BreadCrumb";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 
@@ -11,15 +11,17 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CreateJournal() {
   const quillRef = useRef();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     subTitle: "",
+    issn: "",
     content: "",
     coverImage: null,
   });
   const [editorsOptions, setEditorsOptions] = useState([]);
   const [selectedEditors, setSelectedEditors] = useState([]);
-  
+
   useEffect(() => {
     const fetchEditors = async () => {
       try {
@@ -61,6 +63,7 @@ export default function CreateJournal() {
       const payload = new FormData();
       payload.append("title", formData.title);
       payload.append("subTitle", formData.subTitle);
+      payload.append("issn", formData.issn);
       payload.append("content", formData.content);
       payload.append(
         "editors",
@@ -77,6 +80,9 @@ export default function CreateJournal() {
       });
 
       toast.success("Journal created successfully!");
+      setTimeout(() => {
+        navigate("/journals");
+      }, 1500);
     } catch (err) {
       console.error(err);
       toast.error(err.response.data.message);
@@ -88,8 +94,8 @@ export default function CreateJournal() {
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <BreadCrumb subLabel="Create Journal" />
-        <Link to="/journals" className="btn btn-primary">
-          <i className="ti ti-arrow-left"></i> Back to Journals
+        <Link to="/journals" className="btn btn-primary d-inline-flex">
+          <i className="ti ti-chevron-left"></i> Back to Journals
         </Link>
       </div>
 
@@ -100,37 +106,55 @@ export default function CreateJournal() {
           </div>
           <div className="card-body">
             <form onSubmit={handleSubmit} className="row g-3">
-              <div className="col-12">
-                <label>Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="form-control"
-                  required
-                />
+              <div className="col-md-6">
+                <div className="form-floating mb-3">
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                  />
+                  <label>Title</label>
+                </div>
               </div>
 
-              <div className="col-12">
-                <label>Sub Title</label>
-                <input
-                  type="text"
-                  name="subTitle"
-                  value={formData.subTitle}
-                  onChange={handleChange}
-                  className="form-control"
-                />
+              <div className="col-md-6">
+                <div className="form-floating mb-3">
+                  <input
+                    type="text"
+                    name="subTitle"
+                    value={formData.subTitle}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                  <label>Sub Title</label>
+                </div>
               </div>
 
-              <div className="col-12">
-                <label>Editorials</label>
+              <div className="col-md-6">
+                <div className="form-floating mb-3">
+                  <input
+                    type="text"
+                    name="issn"
+                    value={formData.issn}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                  <label>ISSN NO:</label>
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                {/* <label></label> */}
                 <Select
                   isMulti
                   options={editorsOptions}
                   value={selectedEditors}
                   onChange={setSelectedEditors}
                   classNamePrefix="select"
+                  placeholder="Select editors..."
                   styles={{
                     control: (base) => ({
                       ...base,
@@ -219,7 +243,7 @@ export default function CreateJournal() {
                     "bullet",
                     "link",
                   ]}
-                  style={{ height: "300px", marginBottom: "50px" }}
+                  style={{ height: "300px", marginBottom: "50px", color: "#fff" }}
                 />
 
               </div>

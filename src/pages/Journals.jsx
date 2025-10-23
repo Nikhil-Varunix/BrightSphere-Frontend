@@ -125,6 +125,7 @@ const Journals = () => {
                       <th>Editors</th>
                       {/* <th>Articles</th> */}
                       <th>Volumes</th>
+                      <th>ISSN</th>
                       {/* <th>Issues</th> */}
                       <th>Created By</th>
                       <th>Created Date</th>
@@ -143,9 +144,12 @@ const Journals = () => {
                               <img
                                 src={`${BASE_URL}/${j.coverImage}`}
                                 alt={j.title}
-                                width="35"
-                                height="35"
-                                className="rounded"
+                                style={{
+                                  width: "50px",
+                                  height: "35px",
+                                  objectFit: "cover",
+                                }}
+                                className="rounded shadow-lg"
                               />
                             ) : (
                               <span className="text-muted">--</span>
@@ -157,6 +161,7 @@ const Journals = () => {
                           <td>{j.editors?.length || 0}</td>
                           {/* <td>{j.articles?.length || 0}</td> */}
                           <td>{j.volumes?.length || 0}</td>
+                          <td>{j.issn || '--'}</td>
                           {/* <td>{j.issues?.length || 0}</td> */}
                           <td>{j.createdBy?.firstName || "--"}</td>
                           <td>{new Date(j.createdAt).toLocaleDateString("en-IN")}</td>

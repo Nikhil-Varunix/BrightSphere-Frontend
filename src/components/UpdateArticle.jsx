@@ -1,238 +1,237 @@
-
-import React, { useState, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import ReactQuill from "react-quill";
-// import "react-quill/dist/quill.snow.css";
+import "react-quill/dist/quill.snow.css";
 import BreadCrumb from "../components/BreadCrumb";
-import { Link } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
 
-export default function RichTextEditor() {
-  const [formData, setFormData] = useState({
-    title: "Go Green, Green Innovation for Global",
-    articleType: "Research",
-    journal: "Life and Environmental Science", // default selected
-    author: "Pravinaben Mangubhai Gamit",
-    publishedDate: "2025-09-25",
-    content: `<h3>Abstract</h3>
-  <p>“LIVE GREEN, THINK GREEN, LOVE GREEN” – Let’s go green together. “A meter of green is greener than a centimetre.” I have always been in love with this green Earth – Charles Lamb. Nowadays, the “Go Green” initiative has become an important movement aimed at protecting natural resources for future generations and safeguarding human health through environmental management and sustainable lifestyles. Living in an eco-friendlier way has become essential.</p>
-  <p>I have always loved greenery; in fact, green has been my favourite colour since childhood. Surrounding myself with greenery has influenced my thoughts, lifestyle, and overall perspective on life. That is why I have chosen the topic “Go Green for the Globe.” Whenever I see greenery, it uplifts my mood and fills me with inner happiness. Many people say, “Our inner happiness radiates through our external appearance.” Going green is imperative to understand that we have only one Earth. Nurturing a meaningful relationship with nature ensures long-term sustainability and enhances the value of human life.</p>`,
-  coverImage: "/assets/images/pages/card-1.png",
-    coverImage: "/assets/images/pages/card-1.png",
-  });
+const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  // Example list of available journals
-  const journalsList = [
-    "Life and Environmental Science",
-    "Earth and Climate Studies",
-    "Sustainable Development Journal",
-    "Energy and Environmental Research",
-  ];
-
+export default function UpdateArticle() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const quillRef = useRef();
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    title: "",
+    author: "",
+    articleType: "",
+    journal: "",
+    content: "",
+    volume: "",
+    issue: "",
+    externalLink: "",
+    status: "Published",
+    coverImage: "",
+  });
+  const [journalsList, setJournalsList] = useState([]);
+  const [volumes, setVolumes] = useState([]);
+  const [issues, setIssues] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "coverImage") {
-      setFormData({ ...formData, coverImage: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleContentChange = (value) => {
-    setFormData({ ...formData, content: value });
-  };
-
-  const imageHandler = () => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("accept", "image/*");
-    input.click();
-
-    input.onchange = () => {
-      const file = input.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        const quill = quillRef.current.getEditor();
-        const range = quill.getSelection();
-        quill.insertEmbed(range.index, "image", url);
+  // Fetch article and journals
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    const fetchArticle = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/articles/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.data.success) {
+          const a = res.data.data;
+          setFormData({
+            title: a.title || "",
+            author: a.author || "",
+            articleType: a.articleType || "",
+            journal: a.journal?._id || "",
+            content: a.content || "",
+            volume: a.volume?._id || "",
+            issue: a.issue?._id || "",
+            externalLink: a.externalLink || "",
+            status: a.status || "Published",
+            coverImage: a.coverImage || "",
+          });
+          setPreviewImage(a.coverImage ? `${BASE_URL}/${a.coverImage}` : null);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load article data");
+      } finally {
+        setLoading(false);
       }
     };
-  };
+    const fetchJournals = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/journals`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.data.success) setJournalsList(res.data.data);
+      } catch (err) { console.error(err); }
+    };
+    fetchArticle();
+    fetchJournals();
+  }, [id]);
 
-  const modules = useMemo(
-    () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, false] }],
-          ["bold", "italic", "underline", "strike"],
-          [{ list: "ordered" }, { list: "bullet" }],
-          ["link", "image", "video"],
-          ["clean"],
-        ],
-        handlers: { image: imageHandler },
-      },
-    }),
-    []
-  );
-
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "bullet",
-    "link",
-    "image",
-    "video",
-  ];
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const payload = new FormData();
-    payload.append("title", formData.title);
-    payload.append("articleType", formData.articleType);
-    payload.append("journal", formData.journal);
-    payload.append("author", formData.author);
-    payload.append("publishedDate", formData.publishedDate);
-    payload.append("content", formData.content);
-    if (formData.coverImage) {
-      payload.append("coverImage", formData.coverImage);
+  // Fetch volumes when journal changes
+  useEffect(() => {
+    if (!formData.journal) {
+      setVolumes([]);
+      setIssues([]);
+      setFormData(prev => ({ ...prev, volume: "", issue: "" }));
+      return;
     }
+    const fetchVolumes = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(`${API_URL}/volumes?limit=1000`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.data.success) {
+          const filteredVolumes = res.data.data.filter(v => v.journal._id === formData.journal);
+          setVolumes(filteredVolumes);
+          setFormData(prev => ({ ...prev, volume: filteredVolumes.length ? prev.volume : "", issue: "" }));
+        }
+      } catch (err) { console.error(err); toast.error("Failed to load volumes"); }
+    };
+    fetchVolumes();
+  }, [formData.journal]);
 
-    console.log("Submitting Article:", Object.fromEntries(payload));
-    alert("Article submitted successfully!");
+  // Fetch issues when volume changes
+useEffect(() => {
+  if (!formData.volume) {
+    setIssues([]);
+    setFormData(prev => ({ ...prev, issue: "" }));
+    return;
+  }
+  const fetchIssues = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${API_URL}/issues/by-volume/${formData.volume}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        setIssues(res.data.data);
+
+        // Keep current issue if it exists in the fetched issues, otherwise reset
+        setFormData(prev => ({
+          ...prev,
+          issue: res.data.data.find(i => i._id === prev.issue)?._id || res.data.data[0]?._id || "",
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load issues");
+    }
   };
+  fetchIssues();
+}, [formData.volume]);
+
+
+  const modules = useMemo(() => ({
+    toolbar: [[{ header: [1, 2, 3, false] }], ["bold", "italic", "underline", "strike"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]],
+  }), []);
+  const formats = ["header", "bold", "italic", "underline", "strike", "list", "bullet", "link"];
+
+  const handleChange = e => {
+    const { name, value, files } = e.target;
+    if (name === "coverImage") {
+      setImageFile(files[0]);
+      setPreviewImage(URL.createObjectURL(files[0]));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        ...(name === "journal" ? { volume: "", issue: "" } : {}),
+        ...(name === "volume" ? { issue: "" } : {}),
+      }));
+    }
+  };
+
+  const handleContentChange = value => setFormData(prev => ({ ...prev, content: value }));
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("authToken");
+      const data = new FormData();
+      for (const k in formData) if (k !== "coverImage") data.append(k, formData[k]);
+      if (imageFile) data.append("coverImage", imageFile);
+      await axios.put(`${API_URL}/articles/update/${id}`, data, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } });
+      toast.success("Article updated successfully!");
+      setTimeout(() => navigate("/articles"), 1500);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to update article");
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <>
-     <div className="d-flex justify-content-between align-items-center mb-4">
-                  <BreadCrumb subLabel="Update Article"/>
-                   <div className="d-flex align-items-start gap-2 flex-wrap">
-                          <Link to="/articles" className="btn btn-primary d-flex align-items-center">
-                    <i className="ti ti-arrow-left f-24"></i> Back to Articles
-                    </Link>
-                         </div>
-    </div>
-    <div className="container mt-4">
-      <div className="card">
-        <div className="card-header bg-primary text-white">
-          <h5>Create Article</h5>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            {/* Title */}
-            <div className="mb-3">
-              <label className="form-label">Title</label>
-              <input
-                type="text"
-                className="form-control"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter article title"
-                required
-              />
-            </div>
-
-            {/* Author */}
-            <div className="mb-3">
-              <label className="form-label">Author</label>
-              <input
-                type="text"
-                className="form-control"
-                name="author"
-                value={formData.author}
-                onChange={handleChange}
-                placeholder="Enter author name"
-                required
-              />
-            </div>
-
-            {/* Article Type */}
-            <div className="mb-3">
-              <label className="form-label">Article Type</label>
-              <input
-                type="text"
-                className="form-control"
-                name="articleType"
-                value={formData.articleType}
-                onChange={handleChange}
-                placeholder="Enter Article Type"
-              />
-            </div>
-
-            {/* Journal Dropdown */}
-            <div className="mb-3">
-              <label className="form-label">Journal</label>
-              <select
-                className="form-select"
-                name="journal"
-                value={formData.journal}
-                onChange={handleChange}
-                required
-              >
-                <option value="">-- Select Journal --</option>
-                {journalsList.map((j, idx) => (
-                  <option key={idx} value={j}>
-                    {j}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Cover Image */}
-            <div className="mb-3">
-              <label className="form-label">Cover Image</label>
-              <input
-                type="file"
-                className="form-control"
-                name="coverImage"
-                onChange={handleChange}
-              />
-              <div className="mt-2">
-                <p>Article Image:</p>
-                <img
-                  src={
-                    formData.coverImage instanceof File
-                      ? URL.createObjectURL(formData.coverImage)
-                      : formData.coverImage
-                  }
-                  alt="Cover Preview"
-                  style={{
-                    maxWidth: "200px",
-                    maxHeight: "200px",
-                    borderRadius: "4px",
-                  }}
-                />
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <BreadCrumb subLabel="Update Article" />
+        <Link to="/articles" className="btn btn-primary"><i className="ti ti-arrow-left"></i> Back to Articles</Link>
+      </div>
+      <div className="container mt-4">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <form onSubmit={handleSubmit} encType="multipart/form-data" className="row">
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold">Title</label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} className="form-control" required />
               </div>
-            </div>
-
-            {/* React Quill Editor */}
-            <div className="mb-3">
-              <label className="form-label">Content</label>
-              <ReactQuill
-                ref={quillRef}
-                theme="snow"
-                value={formData.content}
-                onChange={handleContentChange}
-                modules={modules}
-                formats={formats}
-                placeholder="Write your article here..."
-                style={{ height: "300px", marginBottom: "50px" }}
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button type="submit" className="btn btn-primary">
-              Submit Article
-            </button>
-          </form>
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold">Author</label>
+                <input type="text" name="author" value={formData.author} onChange={handleChange} className="form-control" required />
+              </div>
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold">Article Type</label>
+                <select name="articleType" value={formData.articleType} onChange={handleChange} className="form-select" required>
+                  <option value="">-- Select Type --</option>
+                  <option value="Research Paper">Research Paper</option>
+                  <option value="Review Article">Review Article</option>
+                  <option value="Case Study">Case Study</option>
+                  <option value="Short Communication">Short Communication</option>
+                  <option value="Editorial">Editorial</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold">Journal</label>
+                <select name="journal" value={formData.journal} onChange={handleChange} className="form-select" required>
+                  <option value="">-- Select Journal --</option>
+                  {journalsList.map(j => <option key={j._id} value={j._id}>{j.title}</option>)}
+                </select>
+              </div>
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold">Volume</label>
+                <select name="volume" value={formData.volume} onChange={handleChange} className="form-select" disabled={!volumes.length} required>
+                  <option value="">-- Select Volume --</option>
+                  {volumes.map(v => <option key={v._id} value={v._id}>{v.volumeName}</option>)}
+                </select>
+              
+                <label className="form-label fw-bold">Issue</label>
+                <select name="issue" value={formData.issue} onChange={handleChange} className="form-select" disabled={!issues.length}>
+                  <option value="">-- Select Issue --</option>
+                  {issues.map(i => <option key={i._id} value={i._id}>{i.issueName}</option>)}
+                </select>
+              </div>
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold">Cover Image</label>
+                <input type="file" name="coverImage" accept="image/*" onChange={handleChange} className="form-control" />
+                {previewImage && <img className="rounded shadow  mt-3 shadow" src={previewImage} alt="Cover Preview" style={{ width: "200px", height: "100px", objectFit: "cover"}} />}
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-bold">Content</label>
+                <ReactQuill ref={quillRef} theme="snow" value={formData.content} onChange={handleContentChange} modules={modules} formats={formats} style={{ height: "300px", marginBottom: "50px" }} />
+              </div>
+              <div className="col-12">
+                <button type="submit" className="btn btn-primary">Update Article</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
+
+

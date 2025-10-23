@@ -221,7 +221,7 @@ const Editors = () => {
                                   className="btn btn-sm btn-light-primary mx-1"
                                   title="View"
                                   onClick={() =>
-                                    navigate(`/admin/editors/editor-details/${i._id}`)
+                                    navigate(`/admin/editors/details/${i._id}`)
                                   }
                                 >
                                   <i className="ti ti-eye f-18"></i>

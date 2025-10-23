@@ -113,7 +113,7 @@ function App() {
             <Route path="/admin/editors" element={<Editorials />} />
             <Route path="/admin/editors/create-editor" element={<CreateEditors />} />
             <Route path="/admin/editors/update/:id" element={<UpdateEditors />} />
-            <Route path="/admin/editors/editor-details/:id" element={<EditorDetails />} />
+            <Route path="/admin/editors/details/:id" element={<EditorDetails />} />
             <Route path="/admin/permissions" element={<Permissions />} />
             <Route path="/admin/designations" element={<Designations />} />
             <Route path="/admin/volume" element={<Volume />} />

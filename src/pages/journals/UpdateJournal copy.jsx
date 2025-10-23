@@ -6,6 +6,8 @@ import Select from "react-select";
 import BreadCrumb from "../../components/BreadCrumb";
 import axios from "axios";
 import toast from "react-hot-toast";
+import JournalImageUploader from "./JournalImageUploader";
+
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const API_URL = import.meta.env.VITE_API_URL;
@@ -14,20 +16,16 @@ export default function UpdateJournal() {
   const { id } = useParams();
   const quillRef = useRef();
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     subTitle: "",
-    issn: "",
     content: "",
     editorials: [],
-    coverImage: "",
   });
+
   const [editorOptions, setEditorOptions] = useState([]);
   const [selectedEditorials, setSelectedEditorials] = useState([]);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
 
   // Fetch editors & journal data
   useEffect(() => {
@@ -53,6 +51,7 @@ export default function UpdateJournal() {
         if (res.data.success) {
           const journal = res.data.data;
 
+          // Map existing editors for react-select
           const preSelected = (journal.editors || []).map((e) => ({
             value: e._id,
             label: `${e.firstName} ${e.lastName}`,
@@ -61,14 +60,12 @@ export default function UpdateJournal() {
           setFormData({
             title: journal.title,
             subTitle: journal.subTitle,
-            issn: journal.issn,
             content: journal.content,
             coverImage: journal.coverImage,
             editorials: journal.editors || [],
           });
 
           setSelectedEditorials(preSelected);
-          setPreviewImage(`${BASE_URL}/${journal.coverImage}`);
         }
       } catch (err) {
         console.error(err);
@@ -120,7 +117,10 @@ export default function UpdateJournal() {
   // Input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // Editorials change
@@ -137,40 +137,26 @@ export default function UpdateJournal() {
     setFormData((prev) => ({ ...prev, content: value }));
   };
 
-  // Image change
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setPreviewImage(URL.createObjectURL(file));
-    }
-  };
-
   // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("subTitle", formData.subTitle);
-      formDataToSend.append("issn", formData.issn);
-      formDataToSend.append("content", formData.content);
-      selectedEditorials.forEach((e) => formDataToSend.append("editorials[]", e.value));
-
-      if (imageFile) {
-        formDataToSend.append("coverImage", imageFile);
-      }
+      const payload = {
+        title: formData.title,
+        subTitle: formData.subTitle,
+        content: formData.content,
+        editorials: selectedEditorials.map((e) => e.value), // array of editor IDs
+      };
 
       const token = localStorage.getItem("authToken");
-      await axios.put(`${API_URL}/journals/update/${id}`, formDataToSend, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+      await axios.put(`${API_URL}/journals/update/${id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("Journal updated successfully!");
-      setTimeout(() => navigate("/journals"), 1500);
+      setTimeout(() => {
+        navigate("/journals");
+      }, 1500);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to update journal");
@@ -188,19 +174,21 @@ export default function UpdateJournal() {
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <BreadCrumb subLabel="Update Journal" />
-        <Link to="/journals" className="btn btn-primary d-inline-flex">
-          <i className="ti ti-chevron-left"></i> Back to Journals
+        <Link to="/journals" className="btn btn-primary">
+          <i className="ti ti-arrow-left"></i> Back to Journals
         </Link>
       </div>
 
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
+            <form onSubmit={handleSubmit}>
+
               <div className="row">
                 <div className="col-md-8 mb-3">
-                  <div className="mb-4">
-                    <label className="form-label fw-bold">Title</label>
+                  {/* Title */}
+                  <div className="mb-3">
+                    <label className="form-label">Title</label>
                     <input
                       type="text"
                       name="title"
@@ -211,8 +199,9 @@ export default function UpdateJournal() {
                     />
                   </div>
 
-                  <div className="mb-4 ">
-                    <label className="form-label fw-bold">Sub Title</label>
+                  {/* SubTitle */}
+                  <div className="mb-3">
+                    <label className="form-label">Sub Title</label>
                     <input
                       type="text"
                       name="subTitle"
@@ -221,21 +210,22 @@ export default function UpdateJournal() {
                       className="form-control"
                     />
                   </div>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <JournalImageUploader
+                    journalId={id}
+                    currentImage={formData.coverImage}
+                    onUpdate={(newImage) =>
+                      setFormData((prev) => ({ ...prev, coverImage: newImage }))
+                    }
+                  />
+                </div>
+              </div>
 
-                  <div className="mb-4 ">
-                    <label className="form-label fw-bold">ISSN NO:</label>
-                    <input
-                      type="text"
-                      name="issn"
-                      value={formData.issn}
-                      onChange={handleChange}
-                      className="form-control"
-                    />
-                  </div>
 
-                     {/* Editorials */}
+              {/* Editorials */}
               <div className="mb-3">
-                <label className="form-label fw-bold">Editorials</label>
+                <label className="form-label">Editorials</label>
                 <Select
                   isMulti
                   options={editorSelectOptions}
@@ -243,87 +233,8 @@ export default function UpdateJournal() {
                   onChange={handleEditorialChange}
                   classNamePrefix="select"
                   placeholder="Select editors..."
-                   styles={{
-                    control: (base) => ({
-                      ...base,
-                      borderRadius: "0.375rem",
-                      minHeight: "52px",
-                      boxShadow: "none",
-                      borderColor: "#303f50",
-                      backgroundColor: "transparent",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      borderRadius: "0.375rem",
-                      backgroundColor: "#f8f9fa",
-                      padding: "4px",
-                      zIndex: 9999,
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      borderRadius: "4px",
-                      padding: "10px 12px",
-                      fontWeight: 500,
-                      backgroundColor: state.isSelected
-                        ? "#04a9f5"
-                        : state.isFocused
-                          ? "#e3f2fd"
-                          : "transparent",
-                      color: state.isSelected ? "white" : "#212529",
-                      cursor: "pointer",
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      backgroundColor: "#04a9f5",
-                      borderRadius: "10px",
-                      padding: "4px 6px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "white",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "white",
-                      ":hover": {
-                        color: "white",
-                      },
-                    }),
-                  }}
                 />
               </div>
-                </div>
-
-                {/* Cover Image */}
-                <div className="col-md-4 mb-3 text-center">
-                  <label className="form-label">Cover Image</label>
-                  <div>
-                    {previewImage && (
-                      <img
-                        src={previewImage}
-                        alt="Cover Preview"
-                        style={{
-                          width: "100%",
-                          height: "200px",
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                          marginBottom: "10px",
-                        }}
-                      />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-              </div>
-
-           
 
               {/* Content */}
               <div className="mb-3">
@@ -349,3 +260,4 @@ export default function UpdateJournal() {
     </>
   );
 }
+
