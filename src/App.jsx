@@ -18,10 +18,10 @@ import ArticleDetails from './components/ArticleDetails'
 
 // journal
 import Journals from './pages/Journals'
-import CreateJournal from './components/CreateJournal'
-import CreateJournal2 from './components/CreateJournal2'
-import UpdateJournal from './components/UpdateJournal'
-import JournalDetails from './pages/JournalDetails'
+import CreateJournal from './pages/journals/CreateJournal'
+import CreateJournal2 from './pages/journals/CreateJournal2'
+import UpdateJournal from './pages/journals/UpdateJournal'
+import JournalDetails from './pages/journals/JournalDetails'
 // import UpdateJournal from './components/UpdateJournal'
 
 
@@ -45,6 +45,7 @@ import Register from './pages/auth/Register';
 import UpdateUser from './components/UpdateUser';
 import SubmissionsDashboard from './pages/submissions/SubmissionsDashboard';
 import SubmissionDetails from './pages/submissions/SubmissionDetails';
+import DeletedJournals from './pages/Restore/DeletedJournals';
 
 function App() {
   const location = useLocation();
@@ -72,7 +73,7 @@ function App() {
           setTimeout(() => {
             localStorage.clear();
             window.location.href = "/login";
-          }, 2500);
+          }, 2000);
           return new Promise(() => { }); // hang the promise
         }
         return Promise.reject(err);
@@ -102,7 +103,7 @@ function App() {
             <Route path="/article/create-article" element={<CreateArticle />} />
             <Route path="/article/update-article/:id" element={<UpdateArticle />} />
             <Route path="/articles/article-details/:id" element={<ArticleDetails />} />
-            <Route path="/journal/update-journal/:id" element={<UpdateJournal />} />
+            <Route path="/admin/journals/update-journal/:id" element={<UpdateJournal />} />
             <Route path="/admin/journals/journal-details/:id" element={<JournalDetails />} />
             <Route path="/journals" element={<Journals />} />
             <Route path="/journals/create-journal" element={<CreateJournal />} />
@@ -111,7 +112,7 @@ function App() {
             {/* Admin Routes Start  */}
             <Route path="/admin/editors" element={<Editorials />} />
             <Route path="/admin/editors/create-editor" element={<CreateEditors />} />
-            <Route path="/admin/editors/update-editor/:id" element={<UpdateEditors />} />
+            <Route path="/admin/editors/update/:id" element={<UpdateEditors />} />
             <Route path="/admin/editors/editor-details/:id" element={<EditorDetails />} />
             <Route path="/admin/permissions" element={<Permissions />} />
             <Route path="/admin/designations" element={<Designations />} />
@@ -120,6 +121,9 @@ function App() {
 
             <Route path="/form-submissions" element={<SubmissionsDashboard />} />
             <Route path="/form-submissions/view/:id" element={<SubmissionDetails />} />
+
+            <Route path="/restore/journals" element={<DeletedJournals />} />
+
             {/* User Routes Start  */}
             <Route path="/users" element={<Users />} />
             <Route path="/users/update-user/:id" element={<UpdateUser />} />

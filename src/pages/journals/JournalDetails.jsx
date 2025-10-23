@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import BreadCrumb from "../components/BreadCrumb";
+import BreadCrumb from "../../components/BreadCrumb";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;

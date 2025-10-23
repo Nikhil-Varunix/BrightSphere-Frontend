@@ -3,7 +3,7 @@ import React, { useState, useRef } from "react";
 import ReactQuill from "react-quill";
 // import "react-quill/dist/quill.snow.css";
 import Select from "react-select";
-import BreadCrumb from "./BreadCrumb";
+import BreadCrumb from "../../components/BreadCrumb";
 import { Link } from "react-router-dom";
 
 export default function RichTextEditor() {

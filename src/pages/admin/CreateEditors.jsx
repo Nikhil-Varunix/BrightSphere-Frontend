@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import BreadCrumb from "../../components/BreadCrumb";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -18,7 +18,7 @@ const CreateEditor = () => {
     address: "",
     status: "Active",
   });
-
+const navigate = useNavigate();
   const [coverImage, setCoverImage] = useState(null);
   const [preview, setPreview] = useState("");
 
@@ -71,6 +71,9 @@ const CreateEditor = () => {
 
       if (res.data.success) {
         toast.success("Editor created successfully!");
+        setTimeout(() => {
+          navigate("/admin/editors");
+        }, 1500);
         setFormData({
           firstName: "",
           lastName: "",
@@ -95,8 +98,8 @@ const CreateEditor = () => {
       {/* Header + Breadcrumb */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <BreadCrumb subLabel="Admin" pageTitle="Create Editor" />
-        <Link to="/admin/editors" className="btn btn-primary">
-          <i className="ti ti-arrow-left me-2"></i>Back to Editors
+        <Link to="/admin/editors" className="btn btn-primary d-inline-flex">
+          <i className="ti ti-chevron-left me-2"></i>Back to Editors
         </Link>
       </div>
 

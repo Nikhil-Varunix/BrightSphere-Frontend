@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css"; 
 import Select from "react-select";
-import BreadCrumb from "../components/BreadCrumb";
+import BreadCrumb from "../../components/BreadCrumb";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";

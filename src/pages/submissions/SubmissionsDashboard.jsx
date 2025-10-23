@@ -121,7 +121,8 @@ const SubmissionsDashboard = () => {
                 </div>
             </div>
 
-            {/* Search */}
+          <div className="card pt-3">
+              {/* Search */}
             <div className="d-flex flex-wrap align-items-center gap-2 mb-3 px-3">
                 <input
                     type="text"
@@ -263,6 +264,7 @@ const SubmissionsDashboard = () => {
                 </nav>
 
             </div>
+          </div>
 
             {/* Status Update Modal */}
             <Modal show={showModal} onHide={() => setShowModal(false)}>

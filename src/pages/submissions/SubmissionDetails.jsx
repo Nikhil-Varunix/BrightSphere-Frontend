@@ -9,6 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const SubmissionDetails = () => {
+    
     const { id } = useParams();
     const navigate = useNavigate();
     const [submission, setSubmission] = useState(null);
@@ -61,6 +62,34 @@ const SubmissionDetails = () => {
             toast.error("Failed to update status");
         }
     };
+
+    const handleFileDownload = async (file) => {
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(`${BASE_URL}/${file.fileUrl}`, {
+            responseType: "blob", // important
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Create a blob link
+        const blob = new Blob([response.data]);
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary link to trigger download
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", file.fileName || "download");
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        console.error("Download failed:", err);
+        toast.error("Failed to download file");
+    }
+};
 
     if (loading) return <div>Loading...</div>;
     if (!submission) return <div>No submission found.</div>;
@@ -154,7 +183,7 @@ const SubmissionDetails = () => {
                                             <td>{file.fileName}</td>
                                             <td>{file.fileType}</td>
                                             <td>{(file.fileSize / 1024).toFixed(2)}</td>
-                                            <td>
+                                            {/* <td>
                                                 <a
                                                     href={`${BASE_URL}/${file.fileUrl}`}
                                                     target="_blank"
@@ -163,7 +192,17 @@ const SubmissionDetails = () => {
                                                 >
                                                     <i className="ti ti-eye"></i>
                                                 </a>
-                                            </td>
+                                            </td> */}
+
+                                            <td>
+  <button
+    className="btn btn-sm btn-light-primary"
+    onClick={() => handleFileDownload(file)}
+  >
+    <i className="ti ti-download"></i>
+  </button>
+</td>
+
                                         </tr>
                                     ))}
                                 </tbody>

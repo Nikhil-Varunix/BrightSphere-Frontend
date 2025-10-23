@@ -125,10 +125,11 @@ const Articles = () => {
                         <th>Title</th>
                         <th>Type</th>
                         <th>Author</th>
+                        <th>Created By</th>
                         <th>Published Date</th>
                         <th>Views</th>
                         <th>Downloads</th>
-                        <th>Status</th>
+                        {/* <th>Status</th> */}
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -141,9 +142,10 @@ const Articles = () => {
                               <img
                                 src={`${import.meta.env.VITE_BASE_URL}/${article.coverImage}`}
                                 alt={article.title}
+                                className="rounded shadow-lg"
                                 style={{
-                                  width: "60px",
-                                  height: "40px",
+                                  width: "50px",
+                                  height: "35px",
                                   objectFit: "cover",
                                 }}
                               />
@@ -165,23 +167,24 @@ const Articles = () => {
                           >
                             {article.author || "-"}
                           </td>
+                            <td>{article.createdBy.firstName} {article.createdBy.lastName}</td>
                           <td>
                             {article.publishedAt
-                              ? new Date(article.publishedAt).toLocaleDateString()
+                              ? new Date(article.publishedAt).toLocaleDateString("en-IN")
                               : "-"}
                           </td>
                           <td>{article.views || 0}</td>
                           <td>{article.downloads || 0}</td>
-                          <td>
+                          {/* <td>
                             <span
                               className={`badge ${article.status === "published"
                                 ? "bg-light-success"
                                 : "bg-light-warning"
                                 }`}
                             >
-                              {article.status || "Draft"}
+                              {article.status}
                             </span>
-                          </td>
+                          </td> */}
                           <td>
                             <button
                               className="btn btn-sm btn-light-primary mx-1"

@@ -1,4 +1,4 @@
-import BreadCrumb from "../components/BreadCrumb";
+import BreadCrumb from "../../components/BreadCrumb";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const Journals = () => {
+const DeletedJournals = () => {
   const navigate = useNavigate();
   const [journals, setJournals] = useState([]);
   const [filters, setFilters] = useState({ search: "" });
@@ -18,12 +18,12 @@ const Journals = () => {
     total: 0,
   });
 
+  const token = localStorage.getItem("authToken");
   // Fetch Journals
   const fetchJournals = async (page = 1, limit = 10, search = "") => {
     try {
-      const token = localStorage.getItem("authToken");
       const res = await axios.get(
-        `${API_URL}/journals?page=${page}&limit=${limit}&search=${search}`,
+        `${API_URL}/journals/all/deleted?page=${page}&limit=${limit}&search=${search}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -53,21 +53,30 @@ const Journals = () => {
     fetchJournals(pagination.page, pagination.limit, filters.search);
   }, []);
 
-  // Delete Journal
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this journal?")) return;
-    try {
-      const token = localStorage.getItem("authToken");
-      await axios.delete(`${API_URL}/journals/${id}`, {
+// Restore Journal
+// Restore Journal
+const handleRestore = async (id) => {
+  if (!window.confirm("Are you sure you want to restore this journal?")) return;
+
+  try {
+    const token = localStorage.getItem("authToken");
+    await axios.put(
+      `${API_URL}/journals/restore/${id}`,
+      {}, // empty body
+      {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Journal deleted successfully");
-      fetchJournals(pagination.page, pagination.limit, filters.search);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete journal");
-    }
-  };
+      }
+    );
+
+    toast.success("Journal restored successfully");
+    fetchJournals(pagination.page, pagination.limit, filters.search);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to restore journal");
+  }
+};
+
+
 
   // Search handler
   const handleSearch = (e) => {
@@ -123,11 +132,10 @@ const Journals = () => {
                       <th>Cover</th>
                       <th>Title</th>
                       <th>Editors</th>
-                      {/* <th>Articles</th> */}
+                      <th>Articles</th>
                       <th>Volumes</th>
-                      {/* <th>Issues</th> */}
+                      <th>Issues</th>
                       <th>Created By</th>
-                      <th>Created Date</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -155,12 +163,10 @@ const Journals = () => {
                           <td className="fw-semibold">{j.title || "--"}</td>
 
                           <td>{j.editors?.length || 0}</td>
-                          {/* <td>{j.articles?.length || 0}</td> */}
+                          <td>{j.articles?.length || 0}</td>
                           <td>{j.volumes?.length || 0}</td>
-                          {/* <td>{j.issues?.length || 0}</td> */}
+                          <td>{j.issues?.length || 0}</td>
                           <td>{j.createdBy?.firstName || "--"}</td>
-                          <td>{new Date(j.createdAt).toLocaleDateString("en-IN")}</td>
-
 
                           <td>
                             <span
@@ -184,26 +190,17 @@ const Journals = () => {
                                   <i className="ti ti-eye f-18"></i>
                                 </span>
                               </li>
-                              <li className="list-inline-item">
-                                <span
-                                  className="btn btn-sm btn-light-warning mx-1"
-                                  title="Edit"
-                                  onClick={() =>
-                                    navigate(`/admin/journals/update-journal/${j._id}`)
-                                  }
-                                >
-                                  <i className="ti ti-pencil f-18"></i>
-                                </span>
-                              </li>
-                              <li className="list-inline-item cursor-pointer">
-                                <span
-                                  className="btn btn-sm btn-light-danger"
-                                  title="Delete"
-                                  onClick={() => handleDelete(j._id)}
-                                >
-                                  <i className="ti ti-trash f-18" />
-                                </span>
-                              </li>
+                             
+                            <li className="list-inline-item cursor-pointer">
+  <span
+    className="btn btn-sm btn-light-success"
+    title="Restore"
+    onClick={() => handleRestore(j._id)}
+  >
+    <i className="ti ti-refresh f-18" />
+  </span>
+</li>
+
                             </ul>
                           </td>
                         </tr>
@@ -282,4 +279,4 @@ const Journals = () => {
   );
 };
 
-export default Journals;
+export default DeletedJournals;

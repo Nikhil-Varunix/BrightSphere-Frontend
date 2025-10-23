@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const Editors = () => {
   const navigate = useNavigate();
@@ -118,12 +119,13 @@ const Editors = () => {
                   <thead>
                     <tr>
                       <th>S.No</th>
-                      <th>Name</th>
+                      <th>Editor</th>
                       <th>Designation</th>
-                      <th>Department / Program</th>
-                      <th>University / Institute</th>
-                      <th>City</th>
-                      <th>Country</th>
+                      <th>Department </th>
+                      <th>University </th>
+                      {/* <th>City</th> */}
+                      {/* <th>Country</th> */}
+                      <th>Address</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -133,17 +135,81 @@ const Editors = () => {
                       editors.map((i, index) => (
                         <tr key={i._id}>
                           <td>{index + 1 + (pagination.page - 1) * pagination.limit}</td>
-                          <td>{`${i.firstName} ${i.lastName}`}</td>
-                          <td>{i.designation || "--"}</td>
-                          <td>{i.department || "--"}</td>
-                          <td>{i.university || "--"}</td>
-                          <td>{i.city || "--"}</td>
-                          <td>{i.country || "--"}</td>
+                          <td >
+                            <div className="row m-0 p-0">
+                              <div className="col-md-2 px-0">
+                                <img
+                                  src={
+                                    i.coverImage
+                                      ? `${BASE_URL}/${i.coverImage}`
+                                      : "/assets/img/editor/default-editor.png"
+                                  }
+                                  alt="Editor"
+                                  className="img-fluid rounded-circle"
+                                  style={{ width: "40px", height: "40px", objectFit: "cover" }}
+                                />
+                              </div>
+                              <div className="col-md-9 ">
+                                <span style={{
+                                  maxWidth: "200px",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap"
+                                }}>
+
+                                  {`${i.firstName} ${i.lastName}`}
+                                </span>
+                                <br />
+                                <small>
+                                  {i.email}
+
+                                </small>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td style={{
+                            maxWidth: "200px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
+                          }}>
+                            {i.designation || "--"}
+                          </td>
+
+                          <td style={{
+                            maxWidth: "200px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
+                          }}>
+                            {i.department || "--"}
+                          </td>
+
+                          <td style={{
+                            maxWidth: "200px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
+                          }}>
+                            {i.university || "--"}
+                          </td>
+
+                          <td style={{
+                            maxWidth: "200px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
+                          }}>
+                            {i.address || "--"}
+                          </td>
+
+                          {/* <td>{i.city || "--"}</td>
+                          <td>{i.country || "--"}</td> */}
                           <td>
                             <span
-                              className={`badge ${
-                                i.status ? "bg-light-success" : "bg-light-danger"
-                              }`}
+                              className={`badge ${i.status ? "bg-light-success" : "bg-light-danger"
+                                }`}
                             >
                               {i.status ? "Active" : "Inactive"}
                             </span>
@@ -166,7 +232,7 @@ const Editors = () => {
                                   className="btn btn-sm btn-light-warning mx-1"
                                   title="Edit"
                                   onClick={() =>
-                                    navigate(`/admin/editors/update-editor/${i._id}`)
+                                    navigate(`/admin/editors/update/${i._id}`)
                                   }
                                 >
                                   <i className="ti ti-pencil f-18"></i>
@@ -206,9 +272,8 @@ const Editors = () => {
                 <nav className="datatable-pagination">
                   <ul className="datatable-pagination-list">
                     <li
-                      className={`datatable-pagination-list-item ${
-                        pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
-                      }`}
+                      className={`datatable-pagination-list-item ${pagination.page <= 1 ? "datatable-hidden datatable-disabled" : ""
+                        }`}
                     >
                       <button
                         data-page={pagination.page - 1}
@@ -222,9 +287,8 @@ const Editors = () => {
                     {Array.from({ length: pagination.totalPages }, (_, i) => (
                       <li
                         key={i + 1}
-                        className={`datatable-pagination-list-item ${
-                          pagination.page === i + 1 ? "datatable-active" : ""
-                        }`}
+                        className={`datatable-pagination-list-item ${pagination.page === i + 1 ? "datatable-active" : ""
+                          }`}
                       >
                         <button
                           data-page={i + 1}
@@ -237,11 +301,10 @@ const Editors = () => {
                     ))}
 
                     <li
-                      className={`datatable-pagination-list-item ${
-                        pagination.page >= pagination.totalPages
-                          ? "datatable-hidden datatable-disabled"
-                          : ""
-                      }`}
+                      className={`datatable-pagination-list-item ${pagination.page >= pagination.totalPages
+                        ? "datatable-hidden datatable-disabled"
+                        : ""
+                        }`}
                     >
                       <button
                         data-page={pagination.page + 1}
