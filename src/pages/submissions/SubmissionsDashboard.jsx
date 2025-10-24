@@ -163,7 +163,7 @@ const SubmissionsDashboard = () => {
                                     <td>{s.country || "--"}</td>
                                     <td>{s.articleTitle || "--"}</td>
                                     <td>{s.articleType || "--"}</td>
-                                    <td title={s.journal?.title || "--"}>
+                                    <td title={s.journal || "--"}>
                                         <span
                                             style={{
                                                 display: "inline-block",
@@ -174,7 +174,7 @@ const SubmissionsDashboard = () => {
                                                 verticalAlign: "middle",
                                             }}
                                         >
-                                            {s.journal?.title || "--"}
+                                            {s.journal || "--"}
                                         </span>
                                     </td>
                                     <td>
@@ -295,3 +295,4 @@ const SubmissionsDashboard = () => {
 };
 
 export default SubmissionsDashboard;
+

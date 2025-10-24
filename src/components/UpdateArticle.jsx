@@ -72,26 +72,38 @@ export default function UpdateArticle() {
   }, [id]);
 
   // Fetch volumes when journal changes
-  useEffect(() => {
-    if (!formData.journal) {
-      setVolumes([]);
-      setIssues([]);
-      setFormData(prev => ({ ...prev, volume: "", issue: "" }));
-      return;
+useEffect(() => {
+  if (!formData.journal) {
+    setVolumes([]);
+    setIssues([]);
+    setFormData(prev => ({ ...prev, volume: "", issue: "" }));
+    return;
+  }
+
+  const fetchVolumes = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${API_URL}/volumes?limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        const filtered = res.data.data.filter(v => v.journal._id === formData.journal);
+        setVolumes(filtered);
+
+        setFormData(prev => {
+          const volumeExists = filtered.some(v => v._id === prev.volume);
+          return volumeExists ? prev : { ...prev, volume: "", issue: "" };
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load volumes");
     }
-    const fetchVolumes = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const res = await axios.get(`${API_URL}/volumes?limit=1000`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.data.success) {
-          const filteredVolumes = res.data.data.filter(v => v.journal._id === formData.journal);
-          setVolumes(filteredVolumes);
-          setFormData(prev => ({ ...prev, volume: filteredVolumes.length ? prev.volume : "", issue: "" }));
-        }
-      } catch (err) { console.error(err); toast.error("Failed to load volumes"); }
-    };
-    fetchVolumes();
-  }, [formData.journal]);
+  };
+
+  fetchVolumes();
+}, [formData.journal]);
 
   // Fetch issues when volume changes
 useEffect(() => {
@@ -100,28 +112,40 @@ useEffect(() => {
     setFormData(prev => ({ ...prev, issue: "" }));
     return;
   }
+
   const fetchIssues = async () => {
     try {
       const token = localStorage.getItem("authToken");
       const res = await axios.get(`${API_URL}/issues/by-volume/${formData.volume}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.data.success) {
-        setIssues(res.data.data);
 
-        // Keep current issue if it exists in the fetched issues, otherwise reset
-        setFormData(prev => ({
-          ...prev,
-          issue: res.data.data.find(i => i._id === prev.issue)?._id || res.data.data[0]?._id || "",
-        }));
+      if (res.data.success) {
+        const fetchedIssues = res.data.data;
+        setIssues(fetchedIssues);
+
+        setFormData(prev => {
+          // If current issue exists, keep it. Otherwise reset to first available or empty.
+          const issueExists = fetchedIssues.some(i => i._id === prev.issue);
+          return issueExists
+            ? prev
+            : { ...prev, issue: fetchedIssues[0]?._id || "" };
+        });
+      } else {
+        setIssues([]);
+        setFormData(prev => ({ ...prev, issue: "" }));
       }
     } catch (err) {
       console.error(err);
       toast.error("Failed to load issues");
+      setIssues([]);
+      setFormData(prev => ({ ...prev, issue: "" }));
     }
   };
+
   fetchIssues();
 }, [formData.volume]);
+
 
 
   const modules = useMemo(() => ({
@@ -209,10 +233,21 @@ useEffect(() => {
                 </select>
               
                 <label className="form-label fw-bold">Issue</label>
-                <select name="issue" value={formData.issue} onChange={handleChange} className="form-select" disabled={!issues.length}>
-                  <option value="">-- Select Issue --</option>
-                  {issues.map(i => <option key={i._id} value={i._id}>{i.issueName}</option>)}
-                </select>
+                <select
+  name="issue"
+  value={formData.issue}
+  onChange={handleChange}
+  className="form-select"
+  disabled={!issues.length}
+>
+  <option value="">
+    {issues.length ? "-- Select Issue --" : "No issues available"}
+  </option>
+  {issues.map(i => (
+    <option key={i._id} value={i._id}>{i.issueName}</option>
+  ))}
+</select>
+
               </div>
               <div className="col-md-6 mb-3">
                 <label className="form-label fw-bold">Cover Image</label>

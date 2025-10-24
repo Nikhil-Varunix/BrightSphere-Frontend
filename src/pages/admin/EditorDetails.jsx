@@ -62,7 +62,7 @@ const EditorDetails = () => {
       <div className="card mb-3">
         <div className="card-header d-flex align-items-center justify-content-between">
           <h5>Editor Information</h5>
-          <Link to={`/admin/editors/update/${editor._id}`}></Link>
+          <Link className="btn btn-light d-inline-flex" to={`/admin/editors/update/${editor._id}`}><i className="ti ti-pencil f-18"></i> Update Editor</Link>
         </div>
         <div className="card-body">
           <div className="row">
