@@ -1,4 +1,7 @@
 import BreadCrumb from "../../components/BreadCrumb";
+import EditVolumeModal from "../../components/EditVolumeModal";
+import { Modal, Button } from "react-bootstrap";
+
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -18,6 +21,36 @@ const Volumes = () => {
     totalPages: 1,
     total: 0,
   });
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedVolume, setSelectedVolume] = useState(null);
+
+  // Open modal
+  const handleUpdate = (volumeId) => {
+    const found = volumes.find((v) => v._id === volumeId);
+    setSelectedVolume(found);
+    setShowEditModal(true);
+  };
+
+  // Save changes
+ 
+  const handleSaveUpdate = async (id, newName, newStatus) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    await axios.put(
+      `${import.meta.env.VITE_API_URL}/volumes/${id}`,
+      { volumeName: newName, status: newStatus },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    toast.success("Volume updated successfully");
+    fetchVolumes(); // refresh list
+    setShowEditModal(false);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to update volume");
+  }
+};
 
 
   // Fetch all journals (no pagination)
@@ -212,6 +245,9 @@ const Volumes = () => {
                             </span>
                           </td>
                           <td>
+                            <button className="btn btn-sm btn-light-warning me-2" onClick={() => handleUpdate(v._id)}>
+                              <i className="ti ti-pencil f-18" />
+                            </button>
                             <button className="btn btn-sm btn-light-danger" onClick={() => handleDelete(v._id)}>
                               <i className="ti ti-trash f-18" />
                             </button>
@@ -261,8 +297,8 @@ const Volumes = () => {
                     {/* Next button */}
                     <li
                       className={`datatable-pagination-list-item ${pagination.page >= pagination.totalPages
-                          ? "datatable-hidden datatable-disabled"
-                          : ""
+                        ? "datatable-hidden datatable-disabled"
+                        : ""
                         }`}
                     >
                       <button onClick={() => handlePageChange(pagination.page + 1)}>›</button>
@@ -276,6 +312,13 @@ const Volumes = () => {
           </div>
         </div>
       </div>
+      <EditVolumeModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        onSave={handleSaveUpdate}
+        volume={selectedVolume}
+      />
+
     </>
   );
 };

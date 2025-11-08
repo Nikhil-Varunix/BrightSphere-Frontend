@@ -148,6 +148,18 @@ const Header = () => {
                     <span className="pc-mtext" data-i18n="Articles">Articles</span>
                   </Link>
                 </li>
+                
+                {/* InPress Articles */}
+                <li
+                  className="pc-item pc-hasmenu"
+                  ref={(el) => (menuRefs.current[3] = el)}
+                  onClick={() => handleMenuClick(3)}
+                >
+                  <Link to="/articles/in-press" className={`pc-link ${isSubmenuActive("/articles/in-press") ? "active" : ""}`}>
+                    <span className="pc-micon"><i className="ph-duotone ph-file-text" /></span>
+                    <span className="pc-mtext" data-i18n="Articles In Press"> Articles In Press</span>
+                  </Link>
+                </li>
 
                 <li
                   className="pc-item pc-hasmenu"
@@ -188,16 +200,42 @@ const Header = () => {
                 </li>
 
                 {/* Restore */}
-                <li
-                  className="pc-item pc-hasmenu"
-                  ref={(el) => (menuRefs.current[5] = el)}
-                  onClick={() => handleMenuClick(5)}
-                >
-                  <Link to="/restore/journals" className={`pc-link ${isSubmenuActive("/form-submissions") ? "active" : ""}`}>
-                    <span className="pc-micon"><i className="ph-duotone ph-trash" /></span>
-                    <span className="pc-mtext">Trash</span>
-                  </Link>
-                </li>
+
+               <li
+  className="pc-item pc-hasmenu"
+  ref={(el) => (menuRefs.current[5] = el)}
+  onClick={() => handleMenuClick(5)}
+>
+  <a href="#!" className="pc-link">
+    <span className="pc-micon">
+      <i className="ph-duotone ph-trash" />
+    </span>
+    <span className="pc-mtext">Trash</span>
+    <span className="pc-arrow">
+      <i className="ti ti-chevron-right" />
+    </span>
+  </a>
+
+  <ul className="pc-submenu" onClick={(e) => e.stopPropagation()}>
+    {[
+      { path: "/restore/journals", label: "Journals" },
+      // { path: "/restore/editors", label: "Editors" },
+      // { path: "/restore/volumes", label: "Volumes" },
+      // { path: "/restore/issues", label: "Issues" },
+      { path: "/restore/articles", label: "Articles" },
+    ].map((item) => (
+      <li
+        key={item.path}
+        className={`pc-item ${isSubmenuActive(item.path) ? "active" : ""}`}
+      >
+        <Link className="pc-link" to={item.path}>
+          {item.label}
+        </Link>
+      </li>
+    ))}
+  </ul>
+</li>
+
 
 
               </ul>

@@ -143,20 +143,20 @@ const Journals = () => {
                             {j.coverImage ? (
                               <img
                                 src={`${BASE_URL}/${j.coverImage}`}
-                                alt={j.title}
+                                alt="Cover Img"
                                 style={{
                                   width: "50px",
                                   height: "35px",
                                   objectFit: "cover",
                                 }}
-                                className="rounded shadow-lg"
+                                className="rounded shadow-lg text-truncate"
                               />
                             ) : (
                               <span className="text-muted">--</span>
                             )}
                           </td>
 
-                          <td className="fw-semibold">{j.title || "--"}</td>
+                          <td style={{maxWidth:"200px"}} className="fw-semibold text-truncate">{j.title || "--"}</td>
 
                           <td>{j.editors?.length || 0}</td>
                           {/* <td>{j.articles?.length || 0}</td> */}

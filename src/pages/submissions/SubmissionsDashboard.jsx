@@ -210,7 +210,7 @@ const SubmissionsDashboard = () => {
                                                     <i className="ti ti-pencil f-18" />
                                                 </span>
                                             </li>
-                                            {/* <li className="list-inline-item">
+                                            <li className="list-inline-item">
                                                 <span
                                                     className="btn btn-sm btn-light-danger"
                                                     title="Delete"
@@ -218,7 +218,7 @@ const SubmissionsDashboard = () => {
                                                 >
                                                     <i className="ti ti-trash f-18" />
                                                 </span>
-                                            </li> */}
+                                            </li>
                                         </ul>
                                     </td>
                                 </tr>

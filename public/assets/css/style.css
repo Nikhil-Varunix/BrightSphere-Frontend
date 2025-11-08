@@ -26109,7 +26109,7 @@ select[data-multiselectsplitter-secondselect-selector].dataTable-input {
   width: 100%;
 }
 .auth-main.v2 {
-  background: url("../images/authentication/about-banner.png");
+  background: url("../images/authentication/b6bdd63705.jpg");
   background-size: cover;
   background-position: center;
 }
@@ -26126,7 +26126,7 @@ select[data-multiselectsplitter-secondselect-selector].dataTable-input {
   z-index: 1;
   -webkit-backdrop-filter: blur(1px);
           backdrop-filter: blur(1px);
-  --bs-bg-opacity: 0.85;
+  --bs-bg-opacity: 0.55;
 }
 .auth-main.v2 .auth-wrapper {
   align-items: flex-end;

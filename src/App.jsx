@@ -46,6 +46,10 @@ import UpdateUser from './components/UpdateUser';
 import SubmissionsDashboard from './pages/submissions/SubmissionsDashboard';
 import SubmissionDetails from './pages/submissions/SubmissionDetails';
 import DeletedJournals from './pages/Restore/DeletedJournals';
+import ArticlesInPress from './pages/ArticlesInPress';
+import CreateInPressArticle from './pages/CreateInPressArticle';
+import EditInPressArticle from './pages/EditInPressArticle';
+import DeletedArticles from './pages/Restore/DeletedArticles';
 
 function App() {
   const location = useLocation();
@@ -100,6 +104,9 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="user/create-user" element={<CreateUser />} />
             <Route path="/articles" element={<Articles />} />
+            <Route path="/articles/in-press" element={<ArticlesInPress />} />
+            <Route path="/articles/in-press/edit/:id" element={<EditInPressArticle />} />
+            <Route path="/article/create-inpress" element={<CreateInPressArticle />} />
             <Route path="/article/create-article" element={<CreateArticle />} />
             <Route path="/article/update-article/:id" element={<UpdateArticle />} />
             <Route path="/articles/article-details/:id" element={<ArticleDetails />} />
@@ -123,6 +130,7 @@ function App() {
             <Route path="/form-submissions/view/:id" element={<SubmissionDetails />} />
 
             <Route path="/restore/journals" element={<DeletedJournals />} />
+            <Route path="/restore/articles" element={<DeletedArticles />} />
 
             {/* User Routes Start  */}
             <Route path="/users" element={<Users />} />

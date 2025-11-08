@@ -141,7 +141,7 @@ const Articles = () => {
                             {article.coverImage ? (
                               <img
                                 src={`${import.meta.env.VITE_BASE_URL}/${article.coverImage}`}
-                                alt={article.title}
+                                alt="cover"
                                 className="rounded shadow-lg"
                                 style={{
                                   width: "50px",

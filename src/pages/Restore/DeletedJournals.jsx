@@ -151,7 +151,7 @@ const handleRestore = async (id) => {
                               <img
                                 src={`${BASE_URL}/${j.coverImage}`}
                                 alt={j.title}
-                                width="35"
+                                width="50"
                                 height="35"
                                 className="rounded"
                               />

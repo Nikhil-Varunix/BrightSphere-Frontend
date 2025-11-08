@@ -19,7 +19,7 @@ const Login = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     setLoading(true);
     try {
-      await login(values.email, values.password); 
+      await login(values.email, values.password);
       // navigate("/"); 
     } catch (error) {
       console.error("Login failed:", error);
@@ -39,14 +39,16 @@ const Login = () => {
             <img
               src="../assets/images/logo.png"
               className="img-brand img-fluid w-25"
+              style={{ filter: 'drop-shadow(0 0 12px white)' }}
               alt="logo"
             />
+
             <hr className="mb-3 mt-4" />
             <div className="row">
               <div className="col my-1">
                 <p className="m-0">
                   Developed by {" "}
-                  <a  className="text-primary text-decoration-underline"
+                  <a className="text-primary text-decoration-underline"
                     href="https://varunix.in/"
                     target="_blank"
                     rel="noreferrer"
@@ -71,7 +73,7 @@ const Login = () => {
                   </li> */}
                   <li className="list-inline-item">
                     <a
-                      href="https://phoenixcoded.support-hub.io/"
+                      href="#"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -88,10 +90,11 @@ const Login = () => {
         <div className="auth-form">
           <div className="card my-5 mx-3">
             <div className="card-body">
+              
               <h4 className="f-w-500 mb-1">Login with your email</h4>
               <p className="mb-3">
                 Don’t have an Account?{" "}
-                <a href="../pages/register-v2.html" className="link-primary ms-1">
+                <a href="#" className="link-primary ms-1">
                   Create Account
                 </a>
               </p>

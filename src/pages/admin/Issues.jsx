@@ -1,4 +1,5 @@
 import BreadCrumb from "../../components/BreadCrumb";
+import EditIssueModal from "../../components/EditIssueModal";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -20,30 +21,68 @@ const Issues = () => {
     totalPages: 1,
     total: 0,
   });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
+  // 🔹 Open modal
+  const handleEdit = (issueId) => {
+    const found = issues.find((i) => i._id === issueId);
+    setSelectedIssue(found);
+    setShowEditModal(true);
+  };
 
-  // Fetch volumes based on selected journal
-  // Fetch volumes based on selected journal
-const fetchVolumes = async (journalId) => {
+  // 🔹 Save updated issue name
+  const handleSaveUpdate = async (id, newName, newStatus) => {
   try {
-    if (!journalId) {
-      setVolumes([]);
-      return;
-    }
     const token = localStorage.getItem("authToken");
-    const res = await axios.get(`${API_URL}/volumes?journal=${journalId}&limit=1000`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+
+    const res = await axios.put(
+      `${API_URL}/issues/${id}`,
+      { issueName: newName, status: newStatus }, // ✅ send both
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
     if (res.data.success) {
-      // ✅ Filter volumes for the selected journal
-      const filteredVolumes = res.data.data.filter(v => v.journal._id === journalId);
-      setVolumes(filteredVolumes);
+      toast.success("Issue updated successfully");
+      setShowEditModal(false);
+      fetchIssues(pagination.page, pagination.limit, filters.search); // ✅ refresh list
+    } else {
+      toast.error(res.data.message || "Failed to update issue");
     }
   } catch (err) {
     console.error(err);
-    toast.error("Failed to fetch volumes for selected journal");
+    toast.error("Something went wrong while updating issue");
   }
 };
+
+
+
+  // Fetch volumes based on selected journal
+  const fetchVolumes = async (journalId) => {
+    try {
+      if (!journalId) {
+        setVolumes([]);
+        return;
+      }
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${API_URL}/volumes?journal=${journalId}&limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        // ✅ Filter volumes for the selected journal
+        const filteredVolumes = res.data.data.filter(v => v.journal._id === journalId);
+        setVolumes(filteredVolumes);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch volumes for selected journal");
+    }
+  };
 
 
   // Create new issue
@@ -179,7 +218,7 @@ const fetchVolumes = async (journalId) => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <BreadCrumb subLabel="Admin" pageTitle="Issues" />
         <div className="d-flex align-items-start gap-2 flex-wrap">
-          <Link to="/volumes" className="btn btn-primary d-flex align-items-center">
+          <Link to="/admin/volume" className="btn btn-primary d-flex align-items-center">
             <i className="ti ti-chevron-left f-24"></i> Back to Volumes
           </Link>
         </div>
@@ -277,6 +316,13 @@ const fetchVolumes = async (journalId) => {
                           <td>{formatDate(i.updatedAt)}<br /><small>{formatTime(i.updatedAt)}</small></td>
                           <td><span className={`badge ${i.status ? "bg-light-success" : "bg-light-danger"}`}>{i.status ? "Active" : "Inactive"}</span></td>
                           <td>
+                            <button
+                              className="btn btn-sm btn-light-warning me-2"
+                              onClick={() => handleEdit(i._id)}
+                            >
+                              <i className="ti ti-pencil f-18" />
+                            </button>
+
                             <button className="btn btn-sm btn-light-danger" onClick={() => handleDelete(i._id)}>
                               <i className="ti ti-trash f-18" />
                             </button>
@@ -316,6 +362,13 @@ const fetchVolumes = async (journalId) => {
           </div>
         </div>
       </div>
+      <EditIssueModal
+  show={showEditModal}
+  onHide={() => setShowEditModal(false)}
+  onSave={handleSaveUpdate}
+  issue={selectedIssue}
+/>
+
     </>
   );
 };
