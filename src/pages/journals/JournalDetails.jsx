@@ -88,17 +88,19 @@ const JournalDetails = () => {
             {journal.editors.length === 0 && <p>No editors assigned yet.</p>}
             {journal.editors.map((e) => (
               <>
-                <div className="col-md-4 mb-3" key={e._id}>
+                <div className="col-md-6 mb-3" key={e._id}>
                   <div className="p-3 border rounded shadow-sm h-100 d-flex ">
                     <div className="p-3 pt-0">
                       <img 
+                      style={{width: "100px", height: "100px", objectFit: "cover"}}
                       src={`${BASE_URL}/${e.coverImage}`}
                        alt="user-image" class="user-avtar rounded-circle shadow-sm"></img>
                     </div>
                     <div>
                       <h5>{e.firstName} {e.lastName}</h5>
+                      <p className="mb-0">{e.designation} </p>
+                      <p className="mb-0">{e.department} </p>
                       <p className="mb-0">{e.email}</p>
-                      <p className="mb-0">{e.department} Department</p>
                       <p className="mb-0">{e.university}</p>
                       <p className="mb-0">{e.address}</p>
                     </div>

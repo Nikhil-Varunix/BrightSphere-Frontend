@@ -154,9 +154,9 @@ const DeletedArticles = () => {
                             )}
                           </td>
 
-                          <td className="fw-semibold">{a.title || "--"}</td>
-                          <td>{a.author || "--"}</td>
-                          <td>{a.journal?.title || "--"}</td>
+                          <td className="fw-semibold text-truncate" style={{ maxWidth: "220px" }}>{a.title || "--"}</td>
+                          <td className="text-truncate" style={{ maxWidth: "220px" }}>{a.author || "--"}</td>
+                          <td className="text-truncate" style={{ maxWidth: "220px" }}>{a.journal?.title || "--"}</td>
                           <td>{a.createdBy?.firstName || "--"}</td>
                           <td>{new Date(a.updatedAt).toLocaleDateString("en-IN")}</td>
 

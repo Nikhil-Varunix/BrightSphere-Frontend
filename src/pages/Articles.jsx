@@ -123,10 +123,11 @@ const Articles = () => {
                         <th>S.No</th>
                         <th>Image</th>
                         <th>Title</th>
+                        <th>Journal</th>
                         <th>Type</th>
                         <th>Author</th>
-                        <th>Created By</th>
-                        <th>Published Date</th>
+                        <th>Created</th>
+                        {/* <th>Published Date</th> */}
                         <th>Views</th>
                         <th>Downloads</th>
                         {/* <th>Status</th> */}
@@ -160,6 +161,13 @@ const Articles = () => {
                           >
                             {article.title}
                           </td>
+                          <td
+                            title={article.title}
+                            className="text-truncate"
+                            style={{ maxWidth: "180px" }}
+                          >
+                            {article.journal.title}
+                          </td>
                           <td>{article.articleType || "-"}</td>
                           <td
                             className="text-truncate"
@@ -167,11 +175,14 @@ const Articles = () => {
                           >
                             {article.author || "-"}
                           </td>
-                            <td>{article.createdBy.firstName} {article.createdBy.lastName}</td>
-                          <td>
-                            {article.publishedAt
-                              ? new Date(article.publishedAt).toLocaleDateString("en-IN")
-                              : "-"}
+                          <td>{article.createdBy.firstName} {article.createdBy.lastName}
+                            <br />
+                            <small>
+
+                              {article.publishedAt
+                                ? new Date(article.publishedAt).toLocaleDateString("en-IN")
+                                : "-"}
+                            </small>
                           </td>
                           <td>{article.views || 0}</td>
                           <td>{article.downloads || 0}</td>
@@ -202,6 +213,13 @@ const Articles = () => {
                             >
                               <i className="ti ti-pencil"></i>
                             </button>
+                            <a
+                            target="_blank"
+                              className="btn btn-sm btn-light-success mx-1"
+                              href={`${import.meta.env.VITE_BASE_URL}/${article.pdfFile}`}
+                            >
+                              <i className="ti ti-download"></i>
+                            </a>
                             <button
                               className="btn btn-sm btn-light-danger mx-1"
                               onClick={() => handleDelete(article._id)}

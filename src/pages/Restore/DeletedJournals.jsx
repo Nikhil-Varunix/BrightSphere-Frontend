@@ -160,7 +160,7 @@ const handleRestore = async (id) => {
                             )}
                           </td>
 
-                          <td className="fw-semibold">{j.title || "--"}</td>
+                          <td className="fw-semibold text-truncate" style={{ maxWidth: "220px" }}>{j.title || "--"}</td>
 
                           <td>{j.editors?.length || 0}</td>
                           <td>{j.articles?.length || 0}</td>
